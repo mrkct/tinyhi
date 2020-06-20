@@ -14,4 +14,4 @@ class ASTNode():
             return repr(self.root)
         
         children_repr = ', '.join([repr(child) for child in self.children])
-        return f"({self.root}, [{children_repr}])"
+        return f'({self.root}, [{children_repr}])'

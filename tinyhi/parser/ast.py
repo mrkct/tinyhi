@@ -163,7 +163,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
         _, *params_and_commas, _ = _childrenToList(ctx)
         return [self.visit(child) for child in params_and_commas[::2]]
     
-    def visitArrayindexing(self, ctx):
+    def visitIndexExpr(self, ctx):
         left, _, expr, _ = _childrenToList(ctx)
         return ASTNode({
             "type": "arrayIndexing"

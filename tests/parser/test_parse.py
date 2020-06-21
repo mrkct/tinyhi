@@ -127,7 +127,8 @@ def test_basic_expr():
         result = parse(source, rule="expr")
         expected = ASTNode(
             {"type": "binaryExpr", "op": operator}, 
-            [ASTNode({"type": "number", "value": 1}), ASTNode({"type": "number", "value": 2})]
+            [ASTNode({"type": "number", "value": 1}), 
+             ASTNode({"type": "number", "value": 2})]
         )
         assert result == expected
     
@@ -160,3 +161,23 @@ def test_functioncall_noparams():
         "type": "functionCall", 
         "functionName": "do_something"
     })
+
+def test_arrayindexing():
+    source = "array[2 4]"
+    result = parse(source, rule="expr")
+    assert result == ASTNode({
+        "type": "arrayIndexing"
+    }, [ASTNode({"type": "variable", "value": "array"}), 
+        binop(2, " ", 4)]
+    )
+    source = '("ba" + "gel")[0 2]'
+    result = parse(source, rule="expr")
+    string_addition = ASTNode({
+        "type": "binaryExpr",
+        "op": "+"
+    }, [ASTNode({"type": "string", "value": "ba"}),
+        ASTNode({"type": "string", "value": "gel"})]
+    )
+    assert result == ASTNode({
+        "type": "arrayIndexing"
+    }, [string_addition, binop(0, " ", 2)])

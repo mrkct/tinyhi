@@ -69,13 +69,13 @@ class TinyHiVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by TinyHiParser#indexExpr.
-    def visitIndexExpr(self, ctx:TinyHiParser.IndexExprContext):
+    # Visit a parse tree produced by TinyHiParser#strExpr.
+    def visitStrExpr(self, ctx:TinyHiParser.StrExprContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by TinyHiParser#strExpr.
-    def visitStrExpr(self, ctx:TinyHiParser.StrExprContext):
+    # Visit a parse tree produced by TinyHiParser#indexExpr.
+    def visitIndexExpr(self, ctx:TinyHiParser.IndexExprContext):
         return self.visitChildren(ctx)
 
 
@@ -121,11 +121,6 @@ class TinyHiVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by TinyHiParser#concatExpr.
     def visitConcatExpr(self, ctx:TinyHiParser.ConcatExprContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by TinyHiParser#arrayindexing.
-    def visitArrayindexing(self, ctx:TinyHiParser.ArrayindexingContext):
         return self.visitChildren(ctx)
 
 

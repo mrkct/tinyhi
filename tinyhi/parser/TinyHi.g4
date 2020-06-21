@@ -22,7 +22,7 @@ expr: expr expr             #concatExpr
     | expr ('*'|'/') expr   #mulDivExpr
     | expr ('+'|'-') expr   #addSubExpr
     | functioncall          #callExpr
-    | arrayindexing         #indexExpr
+    | expr '[' expr ']'     #indexExpr
     | NUMBER                #numExpr
     | IDENTIFIER            #idExpr
     | STRING                #strExpr
@@ -31,7 +31,6 @@ expr: expr expr             #concatExpr
     | '#' expr              #lenExpr
     ;
 
-arrayindexing: (IDENTIFIER|STRING) '[' expr ']' ;
 functioncall: IDENTIFIER actualparams ;
 actualparams: '(' (expr (',' expr)*)? ')';
 formalparams: '(' (IDENTIFIER (',' IDENTIFIER)*)? ')' ;
@@ -53,4 +52,4 @@ NUMBER: '0' | ('+'|'-')? ([1-9] [0-9]*) ;
 
 STRING: '"' ~('"')* '"' ;
 NEWLINE: ('\r'? '\n')+ ;
-TABS: [ \t] -> skip ;
+WHITESPACE: [ \t] -> skip ;

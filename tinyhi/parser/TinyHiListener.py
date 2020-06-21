@@ -116,21 +116,21 @@ class TinyHiListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by TinyHiParser#indexExpr.
-    def enterIndexExpr(self, ctx:TinyHiParser.IndexExprContext):
-        pass
-
-    # Exit a parse tree produced by TinyHiParser#indexExpr.
-    def exitIndexExpr(self, ctx:TinyHiParser.IndexExprContext):
-        pass
-
-
     # Enter a parse tree produced by TinyHiParser#strExpr.
     def enterStrExpr(self, ctx:TinyHiParser.StrExprContext):
         pass
 
     # Exit a parse tree produced by TinyHiParser#strExpr.
     def exitStrExpr(self, ctx:TinyHiParser.StrExprContext):
+        pass
+
+
+    # Enter a parse tree produced by TinyHiParser#indexExpr.
+    def enterIndexExpr(self, ctx:TinyHiParser.IndexExprContext):
+        pass
+
+    # Exit a parse tree produced by TinyHiParser#indexExpr.
+    def exitIndexExpr(self, ctx:TinyHiParser.IndexExprContext):
         pass
 
 
@@ -212,15 +212,6 @@ class TinyHiListener(ParseTreeListener):
 
     # Exit a parse tree produced by TinyHiParser#concatExpr.
     def exitConcatExpr(self, ctx:TinyHiParser.ConcatExprContext):
-        pass
-
-
-    # Enter a parse tree produced by TinyHiParser#arrayindexing.
-    def enterArrayindexing(self, ctx:TinyHiParser.ArrayindexingContext):
-        pass
-
-    # Exit a parse tree produced by TinyHiParser#arrayindexing.
-    def exitArrayindexing(self, ctx:TinyHiParser.ArrayindexingContext):
         pass
 
 

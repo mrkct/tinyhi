@@ -18,9 +18,7 @@ ifstat: IF expr BOOLOP expr THEN NEWLINE statements (ELSE NEWLINE statements)? E
 whilestat: WHILE expr BOOLOP expr NEWLINE statements END;
 untilstat: UNTIL expr BOOLOP expr NEWLINE statements END;
 
-expr: '~' expr              #negExpr
-    | '#' expr              #lenExpr
-    | expr expr             #concatExpr
+expr: expr expr             #concatExpr
     | expr ('*'|'/') expr   #mulDivExpr
     | expr ('+'|'-') expr   #addSubExpr
     | functioncall          #callExpr
@@ -29,6 +27,8 @@ expr: '~' expr              #negExpr
     | IDENTIFIER            #idExpr
     | STRING                #strExpr
     | '(' expr ')'          #parenExpr
+    | '~' expr              #negExpr
+    | '#' expr              #lenExpr
     ;
 
 arrayindexing: (IDENTIFIER|STRING) '[' expr ']' ;

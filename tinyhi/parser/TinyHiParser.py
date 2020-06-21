@@ -25,8 +25,8 @@ def serializedATN():
         buf.write("\n\3\n\3\n\3\n\3\13\3\13\3\13\3\13\3\13\3\f\3\f\3\f\7")
         buf.write("\f\u008c\n\f\f\f\16\f\u008f\13\f\3\r\3\r\3\r\3\r\7\r\u0095")
         buf.write("\n\r\f\r\16\r\u0098\13\r\5\r\u009a\n\r\3\r\3\r\3\r\2\3")
-        buf.write("\20\16\2\4\6\b\n\f\16\20\22\24\26\30\2\5\3\2\6\7\3\2\b")
-        buf.write("\t\4\2\30\30\32\32\2\u00a9\2\35\3\2\2\2\4+\3\2\2\2\68")
+        buf.write("\20\16\2\4\6\b\n\f\16\20\22\24\26\30\2\5\3\2\4\5\3\2\6")
+        buf.write("\7\4\2\30\30\32\32\2\u00a9\2\35\3\2\2\2\4+\3\2\2\2\68")
         buf.write("\3\2\2\2\b:\3\2\2\2\nC\3\2\2\2\fQ\3\2\2\2\16Y\3\2\2\2")
         buf.write("\20o\3\2\2\2\22~\3\2\2\2\24\u0083\3\2\2\2\26\u0088\3\2")
         buf.write("\2\2\30\u0090\3\2\2\2\32\34\7\33\2\2\33\32\3\2\2\2\34")
@@ -46,27 +46,27 @@ def serializedATN():
         buf.write("OP\7\24\2\2P\13\3\2\2\2QR\7\25\2\2RS\5\20\t\2ST\7\20\2")
         buf.write("\2TU\5\20\t\2UV\7\33\2\2VW\5\4\3\2WX\7\24\2\2X\r\3\2\2")
         buf.write("\2YZ\7\26\2\2Z[\5\20\t\2[\\\7\20\2\2\\]\5\20\t\2]^\7\33")
-        buf.write("\2\2^_\5\4\3\2_`\7\24\2\2`\17\3\2\2\2ab\b\t\1\2bc\7\4")
-        buf.write("\2\2cp\5\20\t\rde\7\5\2\2ep\5\20\t\ffp\5\24\13\2gp\5\22")
-        buf.write("\n\2hp\7\31\2\2ip\7\30\2\2jp\7\32\2\2kl\7\n\2\2lm\5\20")
-        buf.write("\t\2mn\7\13\2\2np\3\2\2\2oa\3\2\2\2od\3\2\2\2of\3\2\2")
-        buf.write("\2og\3\2\2\2oh\3\2\2\2oi\3\2\2\2oj\3\2\2\2ok\3\2\2\2p")
-        buf.write("{\3\2\2\2qr\f\13\2\2rz\5\20\t\fst\f\n\2\2tu\t\2\2\2uz")
-        buf.write("\5\20\t\13vw\f\t\2\2wx\t\3\2\2xz\5\20\t\nyq\3\2\2\2ys")
+        buf.write("\2\2^_\5\4\3\2_`\7\24\2\2`\17\3\2\2\2ab\b\t\1\2bp\5\24")
+        buf.write("\13\2cp\5\22\n\2dp\7\31\2\2ep\7\30\2\2fp\7\32\2\2gh\7")
+        buf.write("\b\2\2hi\5\20\t\2ij\7\t\2\2jp\3\2\2\2kl\7\n\2\2lp\5\20")
+        buf.write("\t\4mn\7\13\2\2np\5\20\t\3oa\3\2\2\2oc\3\2\2\2od\3\2\2")
+        buf.write("\2oe\3\2\2\2of\3\2\2\2og\3\2\2\2ok\3\2\2\2om\3\2\2\2p")
+        buf.write("{\3\2\2\2qr\f\r\2\2rz\5\20\t\16st\f\f\2\2tu\t\2\2\2uz")
+        buf.write("\5\20\t\rvw\f\13\2\2wx\t\3\2\2xz\5\20\t\fyq\3\2\2\2ys")
         buf.write("\3\2\2\2yv\3\2\2\2z}\3\2\2\2{y\3\2\2\2{|\3\2\2\2|\21\3")
         buf.write("\2\2\2}{\3\2\2\2~\177\t\4\2\2\177\u0080\7\f\2\2\u0080")
         buf.write("\u0081\5\20\t\2\u0081\u0082\7\r\2\2\u0082\23\3\2\2\2\u0083")
-        buf.write("\u0084\7\30\2\2\u0084\u0085\7\n\2\2\u0085\u0086\5\26\f")
-        buf.write("\2\u0086\u0087\7\13\2\2\u0087\25\3\2\2\2\u0088\u008d\5")
+        buf.write("\u0084\7\30\2\2\u0084\u0085\7\b\2\2\u0085\u0086\5\26\f")
+        buf.write("\2\u0086\u0087\7\t\2\2\u0087\25\3\2\2\2\u0088\u008d\5")
         buf.write("\20\t\2\u0089\u008a\7\16\2\2\u008a\u008c\5\20\t\2\u008b")
         buf.write("\u0089\3\2\2\2\u008c\u008f\3\2\2\2\u008d\u008b\3\2\2\2")
         buf.write("\u008d\u008e\3\2\2\2\u008e\27\3\2\2\2\u008f\u008d\3\2")
-        buf.write("\2\2\u0090\u0099\7\n\2\2\u0091\u0096\7\30\2\2\u0092\u0093")
+        buf.write("\2\2\u0090\u0099\7\b\2\2\u0091\u0096\7\30\2\2\u0092\u0093")
         buf.write("\7\16\2\2\u0093\u0095\7\30\2\2\u0094\u0092\3\2\2\2\u0095")
         buf.write("\u0098\3\2\2\2\u0096\u0094\3\2\2\2\u0096\u0097\3\2\2\2")
         buf.write("\u0097\u009a\3\2\2\2\u0098\u0096\3\2\2\2\u0099\u0091\3")
         buf.write("\2\2\2\u0099\u009a\3\2\2\2\u009a\u009b\3\2\2\2\u009b\u009c")
-        buf.write("\7\13\2\2\u009c\31\3\2\2\2\17\35#+\618=Moy{\u008d\u0096")
+        buf.write("\7\t\2\2\u009c\31\3\2\2\2\17\35#+\618=Moy{\u008d\u0096")
         buf.write("\u0099")
         return buf.getvalue()
 
@@ -81,8 +81,8 @@ class TinyHiParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "'<-'", "'~'", "'#'", "'*'", "'/'", "'+'", 
-                     "'-'", "'('", "')'", "'['", "']'", "','", "<INVALID>", 
+    literalNames = [ "<INVALID>", "'<-'", "'*'", "'/'", "'+'", "'-'", "'('", 
+                     "')'", "'~'", "'#'", "'['", "']'", "','", "<INVALID>", 
                      "<INVALID>", "'IF'", "'THEN'", "'ELSE'", "'END'", "'WHILE'", 
                      "'UNTIL'", "'BEGIN'" ]
 
@@ -271,7 +271,7 @@ class TinyHiParser ( Parser ):
             self.state = 41
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << TinyHiParser.T__1) | (1 << TinyHiParser.T__2) | (1 << TinyHiParser.T__7) | (1 << TinyHiParser.IF) | (1 << TinyHiParser.WHILE) | (1 << TinyHiParser.UNTIL) | (1 << TinyHiParser.BEGIN) | (1 << TinyHiParser.IDENTIFIER) | (1 << TinyHiParser.NUMBER) | (1 << TinyHiParser.STRING))) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << TinyHiParser.T__5) | (1 << TinyHiParser.T__7) | (1 << TinyHiParser.T__8) | (1 << TinyHiParser.IF) | (1 << TinyHiParser.WHILE) | (1 << TinyHiParser.UNTIL) | (1 << TinyHiParser.BEGIN) | (1 << TinyHiParser.IDENTIFIER) | (1 << TinyHiParser.NUMBER) | (1 << TinyHiParser.STRING))) != 0):
                 self.state = 36
                 self.stat()
                 self.state = 37
@@ -477,7 +477,7 @@ class TinyHiParser ( Parser ):
                 self.state = 47
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << TinyHiParser.T__1) | (1 << TinyHiParser.T__2) | (1 << TinyHiParser.T__7) | (1 << TinyHiParser.IDENTIFIER) | (1 << TinyHiParser.NUMBER) | (1 << TinyHiParser.STRING))) != 0):
+                if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << TinyHiParser.T__5) | (1 << TinyHiParser.T__7) | (1 << TinyHiParser.T__8) | (1 << TinyHiParser.IDENTIFIER) | (1 << TinyHiParser.NUMBER) | (1 << TinyHiParser.STRING))) != 0):
                     self.state = 46
                     self.expr(0)
 
@@ -1181,76 +1181,76 @@ class TinyHiParser ( Parser ):
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,7,self._ctx)
             if la_ == 1:
-                localctx = TinyHiParser.NegExprContext(self, localctx)
+                localctx = TinyHiParser.CallExprContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
 
                 self.state = 96
-                self.match(TinyHiParser.T__1)
-                self.state = 97
-                self.expr(11)
-                pass
-
-            elif la_ == 2:
-                localctx = TinyHiParser.LenExprContext(self, localctx)
-                self._ctx = localctx
-                _prevctx = localctx
-                self.state = 98
-                self.match(TinyHiParser.T__2)
-                self.state = 99
-                self.expr(10)
-                pass
-
-            elif la_ == 3:
-                localctx = TinyHiParser.CallExprContext(self, localctx)
-                self._ctx = localctx
-                _prevctx = localctx
-                self.state = 100
                 self.functioncall()
                 pass
 
-            elif la_ == 4:
+            elif la_ == 2:
                 localctx = TinyHiParser.IndexExprContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 101
+                self.state = 97
                 self.arrayindexing()
                 pass
 
-            elif la_ == 5:
+            elif la_ == 3:
                 localctx = TinyHiParser.NumExprContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 102
+                self.state = 98
                 self.match(TinyHiParser.NUMBER)
                 pass
 
-            elif la_ == 6:
+            elif la_ == 4:
                 localctx = TinyHiParser.IdExprContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 103
+                self.state = 99
                 self.match(TinyHiParser.IDENTIFIER)
                 pass
 
-            elif la_ == 7:
+            elif la_ == 5:
                 localctx = TinyHiParser.StrExprContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 104
+                self.state = 100
                 self.match(TinyHiParser.STRING)
                 pass
 
-            elif la_ == 8:
+            elif la_ == 6:
                 localctx = TinyHiParser.ParenExprContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
+                self.state = 101
+                self.match(TinyHiParser.T__5)
+                self.state = 102
+                self.expr(0)
+                self.state = 103
+                self.match(TinyHiParser.T__6)
+                pass
+
+            elif la_ == 7:
+                localctx = TinyHiParser.NegExprContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
                 self.state = 105
                 self.match(TinyHiParser.T__7)
                 self.state = 106
-                self.expr(0)
+                self.expr(2)
+                pass
+
+            elif la_ == 8:
+                localctx = TinyHiParser.LenExprContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
                 self.state = 107
                 self.match(TinyHiParser.T__8)
+                self.state = 108
+                self.expr(1)
                 pass
 
 
@@ -1270,47 +1270,47 @@ class TinyHiParser ( Parser ):
                         localctx = TinyHiParser.ConcatExprContext(self, TinyHiParser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
                         self.state = 111
-                        if not self.precpred(self._ctx, 9):
+                        if not self.precpred(self._ctx, 11):
                             from antlr4.error.Errors import FailedPredicateException
-                            raise FailedPredicateException(self, "self.precpred(self._ctx, 9)")
+                            raise FailedPredicateException(self, "self.precpred(self._ctx, 11)")
                         self.state = 112
-                        self.expr(10)
+                        self.expr(12)
                         pass
 
                     elif la_ == 2:
                         localctx = TinyHiParser.MulDivExprContext(self, TinyHiParser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
                         self.state = 113
-                        if not self.precpred(self._ctx, 8):
+                        if not self.precpred(self._ctx, 10):
                             from antlr4.error.Errors import FailedPredicateException
-                            raise FailedPredicateException(self, "self.precpred(self._ctx, 8)")
+                            raise FailedPredicateException(self, "self.precpred(self._ctx, 10)")
                         self.state = 114
                         _la = self._input.LA(1)
-                        if not(_la==TinyHiParser.T__3 or _la==TinyHiParser.T__4):
+                        if not(_la==TinyHiParser.T__1 or _la==TinyHiParser.T__2):
                             self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
                         self.state = 115
-                        self.expr(9)
+                        self.expr(11)
                         pass
 
                     elif la_ == 3:
                         localctx = TinyHiParser.AddSubExprContext(self, TinyHiParser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
                         self.state = 116
-                        if not self.precpred(self._ctx, 7):
+                        if not self.precpred(self._ctx, 9):
                             from antlr4.error.Errors import FailedPredicateException
-                            raise FailedPredicateException(self, "self.precpred(self._ctx, 7)")
+                            raise FailedPredicateException(self, "self.precpred(self._ctx, 9)")
                         self.state = 117
                         _la = self._input.LA(1)
-                        if not(_la==TinyHiParser.T__5 or _la==TinyHiParser.T__6):
+                        if not(_la==TinyHiParser.T__3 or _la==TinyHiParser.T__4):
                             self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
                         self.state = 118
-                        self.expr(8)
+                        self.expr(10)
                         pass
 
              
@@ -1434,11 +1434,11 @@ class TinyHiParser ( Parser ):
             self.state = 129
             self.match(TinyHiParser.IDENTIFIER)
             self.state = 130
-            self.match(TinyHiParser.T__7)
+            self.match(TinyHiParser.T__5)
             self.state = 131
             self.actualparams()
             self.state = 132
-            self.match(TinyHiParser.T__8)
+            self.match(TinyHiParser.T__6)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -1551,7 +1551,7 @@ class TinyHiParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 142
-            self.match(TinyHiParser.T__7)
+            self.match(TinyHiParser.T__5)
             self.state = 151
             self._errHandler.sync(self)
             _la = self._input.LA(1)
@@ -1573,7 +1573,7 @@ class TinyHiParser ( Parser ):
 
 
             self.state = 153
-            self.match(TinyHiParser.T__8)
+            self.match(TinyHiParser.T__6)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -1596,15 +1596,15 @@ class TinyHiParser ( Parser ):
 
     def expr_sempred(self, localctx:ExprContext, predIndex:int):
             if predIndex == 0:
-                return self.precpred(self._ctx, 9)
+                return self.precpred(self._ctx, 11)
          
 
             if predIndex == 1:
-                return self.precpred(self._ctx, 8)
+                return self.precpred(self._ctx, 10)
          
 
             if predIndex == 2:
-                return self.precpred(self._ctx, 7)
+                return self.precpred(self._ctx, 9)
          
 
 

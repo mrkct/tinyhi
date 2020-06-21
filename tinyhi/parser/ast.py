@@ -54,9 +54,9 @@ class ASTBuilderVisitor(TinyHiVisitor):
                 "name": identifier.getText(), 
                 "params": self.visit(params)
             }, self.visit(statements))
-        _, _, stats, _ = children
         
         # Or an unnamed block
+        _, _, statements, _ = children
         return ASTNode({
             "type": "block"
         }, self.visit(statements))

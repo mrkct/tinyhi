@@ -21,3 +21,11 @@ def test_named_function_noargs():
         "name": "My_Cool_Function2",
         "params": [] 
     }, [])
+
+def test_unnamed_block():
+    source = r"""BEGIN 
+    END"""
+    result = parse(source, rule='block')
+    assert result == ASTNode({
+        "type": "block"
+    })

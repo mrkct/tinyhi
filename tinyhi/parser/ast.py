@@ -34,6 +34,7 @@ class ASTNode():
 
 def _childrenToList(ctx):
     """Extracts all of an ANTLR Context children into a list"""
+    # FIXME: Rename in something better
     return [ctx.getChild(i) for i in range(0, ctx.getChildCount())]
 
 # TODO: Add info (e.g. line numbers) for printing error messages
@@ -89,6 +90,57 @@ class ASTBuilderVisitor(TinyHiVisitor):
                 "variable": identifier.getText()
             })
     
+    def visitUnaryExpr(self, ctx):
+        # This is not a rule, just a helper for unary expressions
+        op, expr = _childrenToList(ctx)
+        return ASTNode({
+            "type": "unaryExpr", 
+            "op": op.getText()
+        }, [self.visit(expr)])
+
+    def visitNegExpr(self, ctx):
+        return self.visitUnaryExpr(ctx)
+
+    def visitLenExpr(self, ctx):
+        return self.visitUnaryExpr(ctx)
+
+    def visitConcatExpr(self, ctx):
+        left, right = _childrenToList(ctx)
+        print('visitConcatExpr?   ', )
+        # FIXME: A blank space as an operator is really ugly
+        return ASTNode({
+            "type": "binaryExpr", 
+            "op": " "
+        }, [self.visit(left), self.visit(right)])
+
+    def visitBinaryExpr(self, ctx):
+        # This is not a rule, just a helper for binary expressions
+        left, op, right = _childrenToList(ctx)
+        print('visitBinaryExpr. Op:', op, '   ', op.getText())
+        return ASTNode({
+            "type": "binaryExpr", 
+            "op": op.getText()
+        }, [self.visit(left), self.visit(right)])
+    
+    def visitMulDivExpr(self, ctx):
+        return self.visitBinaryExpr(ctx)
+
+    def visitAddSubExpr(self, ctx):
+        return self.visitBinaryExpr(ctx)
+
+    def visitFunctioncall(self, ctx):
+        function_name, _, *params_and_commas, _ = _childrenToList(ctx)
+        return ASTNode({
+            "type": "functionCall", 
+            "functionName": function_name
+        }, [self.visit(expr) for expr in params_and_commas[::2]])
+    
+    def visitArrayindexing(self, ctx):
+        left, _, expr, _ = _childrenToList(ctx)
+        return ASTNode({
+            "type": "arrayIndexing"
+        }, [self.visit(left), self.visit(expr)])
+    
     def visitNumExpr(self, ctx):
         return ASTNode({
             "type": "number", 
@@ -106,6 +158,11 @@ class ASTBuilderVisitor(TinyHiVisitor):
             "type": "string", 
             "value": ctx.getText()[1:-1]
         })
+    
+    def visitParenExpr(self, ctx):
+        _, expr, _ = _childrenToList(ctx)
+        return self.visit(expr)
+    
     
     
 

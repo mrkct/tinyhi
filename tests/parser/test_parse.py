@@ -82,7 +82,12 @@ def test_simple_assignment():
     }, [ASTNode({"type": "string", "value": "hello"})])
     
 def test_complex_assignment():
-    pass
+    source = "A <- 1 + 2 * 3"
+    result = parse(source, rule="stat")
+    assert result == ASTNode({
+        "type": "assignment", 
+        "variable": "A"
+    }, [binop(1, "+", binop(2, "*", 3))])
 
 def test_basic_expr():
     source = "1"

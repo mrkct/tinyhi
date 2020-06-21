@@ -89,6 +89,32 @@ def test_complex_assignment():
         "variable": "A"
     }, [binop(1, "+", binop(2, "*", 3))])
 
+def test_if_noelse():
+    source = """IF a = 1 THEN
+        1
+    END"""
+    result = parse(source, rule="stat")
+    expected = ASTNode({
+        "type": "if", 
+        "cond": binop(ASTNode({"type": "variable", "value": "a"}), "=", 1), 
+        "onTrue": [ASTNode({"type": "number", "value": 1})], 
+        "onFalse": []
+    })
+
+def test_if_else():
+    source = """IF a <= 2 THEN
+        1
+    ELSE
+        2
+    END"""
+    result = parse(source, rule="stat")
+    expected = ASTNode({
+        "type": "if", 
+        "cond": binop(ASTNode({"type": "variable", "value": "a"}), "<=", 2), 
+        "onTrue": [ASTNode({"type": "number", "value": 1})], 
+        "onFalse": [ASTNode({"type": "number", "value": 2})]
+    })
+
 def test_basic_expr():
     source = "1"
     result = parse(source, rule="expr")
@@ -113,3 +139,24 @@ def test_complex_expr():
     before_neg = binop(5, "*", binop(left_vec, "+", right_vec))
     expected = unaryop('#', unaryop('~', before_neg))
     assert result == expected
+
+def test_functioncall_params():
+    source = 'print("hello", 1 + 1, "world")'
+    result = parse(source, rule="expr")
+    expected = ASTNode({
+        "type": "functionCall", 
+        "functionName": "print"
+    }, [
+        ASTNode({"type": "string", "value": "hello"}), 
+        binop(1, "+", 1), 
+        ASTNode({"type": "string", "value": "world"})
+    ])
+    assert result == expected
+
+def test_functioncall_noparams():
+    source = "do_something()";
+    result = parse(source, rule="expr")
+    assert result == ASTNode({
+        "type": "functionCall", 
+        "functionName": "do_something"
+    })

@@ -90,6 +90,31 @@ class ASTBuilderVisitor(TinyHiVisitor):
                 "variable": identifier.getText()
             })
     
+    def visitIfstat(self, ctx):
+        children = _childrenToList(ctx)
+        _, left, bool_op, right, _, _, true_stats, *rest = children
+        cond = ASTNode({
+            "type": "binaryExpr", 
+            "op": bool_op.getText()
+        }, [self.visit(left), self.visit(right)])
+        # If it doesn't have an ELSE
+        if len(children) == 8:
+            return ASTNode({
+                "type": "if", 
+                "cond": cond, 
+                "onTrue": self.visit(true_stats), 
+                "onFalse": []
+            })
+        else:
+            _, _, else_stats, _ = rest
+            return ASTNode({
+                "type": "if", 
+                "cond": cond, 
+                "onTrue": self.visit(true_stats), 
+                "onFalse": self.visit(else_stats)
+            })
+
+
     def visitUnaryExpr(self, ctx):
         # This is not a rule, just a helper for unary expressions
         op, expr = _childrenToList(ctx)
@@ -106,7 +131,6 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitConcatExpr(self, ctx):
         left, right = _childrenToList(ctx)
-        print('visitConcatExpr?   ', )
         # FIXME: A blank space as an operator is really ugly
         return ASTNode({
             "type": "binaryExpr", 
@@ -116,7 +140,6 @@ class ASTBuilderVisitor(TinyHiVisitor):
     def visitBinaryExpr(self, ctx):
         # This is not a rule, just a helper for binary expressions
         left, op, right = _childrenToList(ctx)
-        print('visitBinaryExpr. Op:', op, '   ', op.getText())
         return ASTNode({
             "type": "binaryExpr", 
             "op": op.getText()
@@ -129,11 +152,16 @@ class ASTBuilderVisitor(TinyHiVisitor):
         return self.visitBinaryExpr(ctx)
 
     def visitFunctioncall(self, ctx):
-        function_name, _, *params_and_commas, _ = _childrenToList(ctx)
+        function_name, actual_params = _childrenToList(ctx)
         return ASTNode({
             "type": "functionCall", 
-            "functionName": function_name
-        }, [self.visit(expr) for expr in params_and_commas[::2]])
+            "functionName": function_name.getText()
+        }, self.visit(actual_params))
+    
+    def visitActualparams(self, ctx):
+        # This is a list of expr with commas in between enclosed in parenthesis
+        _, *params_and_commas, _ = _childrenToList(ctx)
+        return [self.visit(child) for child in params_and_commas[::2]]
     
     def visitArrayindexing(self, ctx):
         left, _, expr, _ = _childrenToList(ctx)
@@ -163,10 +191,6 @@ class ASTBuilderVisitor(TinyHiVisitor):
         _, expr, _ = _childrenToList(ctx)
         return self.visit(expr)
     
-    
-    
-
-
 
 def parse(source, rule="program"):
     """Generates the AST from a string containing the source code.

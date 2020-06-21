@@ -68,6 +68,46 @@ class ASTBuilderVisitor(TinyHiVisitor):
         _, *params_and_commas, _ = children
         params = params_and_commas[::2]
         return [p.getText() for p in params]
+    
+    def visitStatements(self, ctx):
+        # A statement is a stat with a NEWLINE at the end
+        # We remove the NEWLINE and return a list of statements
+        children = _childrenToList(ctx)
+        return [self.visit(stat) for stat in children[::2]]
+    
+    def visitAssignStat(self, ctx):
+        identifier, _, *expr = _childrenToList(ctx)
+        # An assignment can also have no right side ('A <-' is valid)
+        if expr:
+            return ASTNode({
+                "type": "assignment", 
+                "variable": identifier.getText()
+            }, [self.visit(expr[0])])
+        else:
+            return ASTNode({
+                "type": "assignment", 
+                "variable": identifier.getText()
+            })
+    
+    def visitNumExpr(self, ctx):
+        return ASTNode({
+            "type": "number", 
+            "value": int(ctx.getText())
+        })
+    
+    def visitIdExpr(self, ctx):
+        return ASTNode({
+            "type": "variable", 
+            "value": ctx.getText()
+        })
+    
+    def visitStrExpr(self, ctx):
+        return ASTNode({
+            "type": "string", 
+            "value": ctx.getText()[1:-1]
+        })
+    
+    
 
 
 

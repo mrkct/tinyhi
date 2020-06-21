@@ -29,3 +29,27 @@ def test_unnamed_block():
     assert result == ASTNode({
         "type": "block"
     })
+
+def test_empty_assignment():
+    source = "A <-"
+    result = parse(source, rule="stat")
+    assert result == ASTNode({
+        "type": "assignment", 
+        "variable": "A"
+    })
+
+def test_simple_assignment():
+    source = "A <- 1"
+    result = parse(source, rule="stat")
+    assert result == ASTNode({
+        "type": "assignment", 
+        "variable": "A"
+    }, [ASTNode({"type": "number", "value": 1})])
+    
+    source = 'result <- "hello"\n'
+    result = parse(source, rule="stat")
+    assert result == ASTNode({
+        "type": "assignment", 
+        "variable": "result"
+    }, [ASTNode({"type": "string", "value": "hello"})])
+    

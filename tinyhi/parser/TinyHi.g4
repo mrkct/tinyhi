@@ -32,8 +32,8 @@ expr: expr expr             #concatExpr
     ;
 
 arrayindexing: (IDENTIFIER|STRING) '[' expr ']' ;
-functioncall: IDENTIFIER '(' actualparams ')' ;
-actualparams: expr (',' expr)* ;
+functioncall: IDENTIFIER actualparams ;
+actualparams: '(' (expr (',' expr)*)? ')';
 formalparams: '(' (IDENTIFIER (',' IDENTIFIER)*)? ')' ;
 
 COMMENT: ('//' ~[\n]) -> skip ;

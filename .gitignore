@@ -2,6 +2,7 @@
 *.antlr/
 notes_*
 jars/
+handouts/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,1 +1,2 @@
-from .ast import ASTNode, parse
+from .parse import parse, ParseError
+from .ast import ASTNode

@@ -19,6 +19,11 @@ class TinyHiVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by TinyHiParser#statement.
+    def visitStatement(self, ctx:TinyHiParser.StatementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by TinyHiParser#assignStat.
     def visitAssignStat(self, ctx:TinyHiParser.AssignStatContext):
         return self.visitChildren(ctx)
@@ -69,13 +74,18 @@ class TinyHiVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by TinyHiParser#strExpr.
+    def visitStrExpr(self, ctx:TinyHiParser.StrExprContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by TinyHiParser#indexExpr.
     def visitIndexExpr(self, ctx:TinyHiParser.IndexExprContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by TinyHiParser#strExpr.
-    def visitStrExpr(self, ctx:TinyHiParser.StrExprContext):
+    # Visit a parse tree produced by TinyHiParser#varExpr.
+    def visitVarExpr(self, ctx:TinyHiParser.VarExprContext):
         return self.visitChildren(ctx)
 
 
@@ -104,28 +114,18 @@ class TinyHiVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by TinyHiParser#numExpr.
-    def visitNumExpr(self, ctx:TinyHiParser.NumExprContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by TinyHiParser#parenExpr.
     def visitParenExpr(self, ctx:TinyHiParser.ParenExprContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by TinyHiParser#idExpr.
-    def visitIdExpr(self, ctx:TinyHiParser.IdExprContext):
+    # Visit a parse tree produced by TinyHiParser#numExpr.
+    def visitNumExpr(self, ctx:TinyHiParser.NumExprContext):
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by TinyHiParser#concatExpr.
     def visitConcatExpr(self, ctx:TinyHiParser.ConcatExprContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by TinyHiParser#arrayindexing.
-    def visitArrayindexing(self, ctx:TinyHiParser.ArrayindexingContext):
         return self.visitChildren(ctx)
 
 
@@ -141,6 +141,21 @@ class TinyHiVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by TinyHiParser#formalparams.
     def visitFormalparams(self, ctx:TinyHiParser.FormalparamsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by TinyHiParser#identifier.
+    def visitIdentifier(self, ctx:TinyHiParser.IdentifierContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by TinyHiParser#number.
+    def visitNumber(self, ctx:TinyHiParser.NumberContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by TinyHiParser#string.
+    def visitString(self, ctx:TinyHiParser.StringContext):
         return self.visitChildren(ctx)
 
 

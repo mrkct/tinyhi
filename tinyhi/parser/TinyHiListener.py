@@ -26,6 +26,15 @@ class TinyHiListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by TinyHiParser#statement.
+    def enterStatement(self, ctx:TinyHiParser.StatementContext):
+        pass
+
+    # Exit a parse tree produced by TinyHiParser#statement.
+    def exitStatement(self, ctx:TinyHiParser.StatementContext):
+        pass
+
+
     # Enter a parse tree produced by TinyHiParser#assignStat.
     def enterAssignStat(self, ctx:TinyHiParser.AssignStatContext):
         pass
@@ -116,6 +125,15 @@ class TinyHiListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by TinyHiParser#strExpr.
+    def enterStrExpr(self, ctx:TinyHiParser.StrExprContext):
+        pass
+
+    # Exit a parse tree produced by TinyHiParser#strExpr.
+    def exitStrExpr(self, ctx:TinyHiParser.StrExprContext):
+        pass
+
+
     # Enter a parse tree produced by TinyHiParser#indexExpr.
     def enterIndexExpr(self, ctx:TinyHiParser.IndexExprContext):
         pass
@@ -125,12 +143,12 @@ class TinyHiListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by TinyHiParser#strExpr.
-    def enterStrExpr(self, ctx:TinyHiParser.StrExprContext):
+    # Enter a parse tree produced by TinyHiParser#varExpr.
+    def enterVarExpr(self, ctx:TinyHiParser.VarExprContext):
         pass
 
-    # Exit a parse tree produced by TinyHiParser#strExpr.
-    def exitStrExpr(self, ctx:TinyHiParser.StrExprContext):
+    # Exit a parse tree produced by TinyHiParser#varExpr.
+    def exitVarExpr(self, ctx:TinyHiParser.VarExprContext):
         pass
 
 
@@ -179,15 +197,6 @@ class TinyHiListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by TinyHiParser#numExpr.
-    def enterNumExpr(self, ctx:TinyHiParser.NumExprContext):
-        pass
-
-    # Exit a parse tree produced by TinyHiParser#numExpr.
-    def exitNumExpr(self, ctx:TinyHiParser.NumExprContext):
-        pass
-
-
     # Enter a parse tree produced by TinyHiParser#parenExpr.
     def enterParenExpr(self, ctx:TinyHiParser.ParenExprContext):
         pass
@@ -197,12 +206,12 @@ class TinyHiListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by TinyHiParser#idExpr.
-    def enterIdExpr(self, ctx:TinyHiParser.IdExprContext):
+    # Enter a parse tree produced by TinyHiParser#numExpr.
+    def enterNumExpr(self, ctx:TinyHiParser.NumExprContext):
         pass
 
-    # Exit a parse tree produced by TinyHiParser#idExpr.
-    def exitIdExpr(self, ctx:TinyHiParser.IdExprContext):
+    # Exit a parse tree produced by TinyHiParser#numExpr.
+    def exitNumExpr(self, ctx:TinyHiParser.NumExprContext):
         pass
 
 
@@ -212,15 +221,6 @@ class TinyHiListener(ParseTreeListener):
 
     # Exit a parse tree produced by TinyHiParser#concatExpr.
     def exitConcatExpr(self, ctx:TinyHiParser.ConcatExprContext):
-        pass
-
-
-    # Enter a parse tree produced by TinyHiParser#arrayindexing.
-    def enterArrayindexing(self, ctx:TinyHiParser.ArrayindexingContext):
-        pass
-
-    # Exit a parse tree produced by TinyHiParser#arrayindexing.
-    def exitArrayindexing(self, ctx:TinyHiParser.ArrayindexingContext):
         pass
 
 
@@ -248,6 +248,33 @@ class TinyHiListener(ParseTreeListener):
 
     # Exit a parse tree produced by TinyHiParser#formalparams.
     def exitFormalparams(self, ctx:TinyHiParser.FormalparamsContext):
+        pass
+
+
+    # Enter a parse tree produced by TinyHiParser#identifier.
+    def enterIdentifier(self, ctx:TinyHiParser.IdentifierContext):
+        pass
+
+    # Exit a parse tree produced by TinyHiParser#identifier.
+    def exitIdentifier(self, ctx:TinyHiParser.IdentifierContext):
+        pass
+
+
+    # Enter a parse tree produced by TinyHiParser#number.
+    def enterNumber(self, ctx:TinyHiParser.NumberContext):
+        pass
+
+    # Exit a parse tree produced by TinyHiParser#number.
+    def exitNumber(self, ctx:TinyHiParser.NumberContext):
+        pass
+
+
+    # Enter a parse tree produced by TinyHiParser#string.
+    def enterString(self, ctx:TinyHiParser.StringContext):
+        pass
+
+    # Exit a parse tree produced by TinyHiParser#string.
+    def exitString(self, ctx:TinyHiParser.StringContext):
         pass
 
 

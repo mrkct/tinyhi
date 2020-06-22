@@ -1,5 +1,4 @@
-def parse(source):
-    pass
+from .parser import parse, ParseError
 
 def run(ast):
     pass

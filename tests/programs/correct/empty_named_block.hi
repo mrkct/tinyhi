@@ -1,0 +1,2 @@
+BEGIN hello(arg1, arg2)
+END

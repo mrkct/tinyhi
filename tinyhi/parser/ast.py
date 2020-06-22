@@ -1,6 +1,7 @@
 from antlr4.CommonTokenStream import CommonTokenStream
 from antlr4.InputStream import InputStream
 from antlr4.tree.Tree import TerminalNodeImpl
+from antlr4.error.ErrorListener import ErrorListener
 
 from .TinyHiVisitor import TinyHiVisitor
 from .TinyHiLexer import TinyHiLexer
@@ -58,7 +59,24 @@ class ASTBuilderVisitor(TinyHiVisitor):
         # TODO: Handle the case of an empty program
         # TODO: Handle better the case of many unnamed blocks
         # FIXME: The spec says to run the first UNNAMED block, not the first
-        return ASTNode(self.visit(ctx.block()[0]))
+        blocks = remove_whitespace(_childrenToList(ctx))
+        if len(blocks) == 0: return None
+        
+        blocks = [self.visit(b) for b in blocks]
+
+        def find_first_unnamed_block():
+            """Returns the index and value of the first unnamed block"""
+            for i, block in enumerate(blocks):
+                # If it's an unnamed block
+                if block.root["type"] == "block":
+                    return i, block
+            return -1, None
+        
+        index, first_block = find_first_unnamed_block()    
+        return ASTNode({
+            "type": "start", 
+            "start": first_block if index != -1 else None
+        }, blocks[:index] + blocks[index+1:])
     
     def visitBlock(self, ctx):
         children = remove_whitespace(_childrenToList(ctx))
@@ -210,20 +228,3 @@ class ASTBuilderVisitor(TinyHiVisitor):
         children = remove_whitespace(_childrenToList(ctx))
         _, expr, _ = children
         return self.visit(expr)
-    
-
-def parse(source, rule="program"):
-    """Generates the AST from a string containing the source code.
-    Args:
-        source: A string containing the source code of the program to parse
-        rule: The name of the rule from which to start building the AST, defaults to 'program'
-    Returns:
-        An ``ASTNode`` representing the whole AST on success, ``None`` if an error occurred
-    """
-    lexer = TinyHiLexer(InputStream(source))
-    stream = CommonTokenStream(lexer)
-    parser = TinyHiParser(stream)
-    if not hasattr(parser, rule):
-        raise ValueError(f'There is no rule "{rule}" in the grammar')
-    parse_tree = getattr(parser, rule)()
-    return ASTBuilderVisitor().visit(parse_tree)

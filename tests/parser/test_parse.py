@@ -51,8 +51,7 @@ def test_named_function_noargs():
     }, [])
 
 def test_unnamed_block():
-    source = r"""BEGIN 
-    END"""
+    source = """BEGIN\nEND"""
     result = parse(source, rule='block')
     assert result == ASTNode({
         "type": "block"
@@ -131,14 +130,19 @@ def test_basic_expr():
              ASTNode({"type": "number", "value": 2})]
         )
         assert result == expected
-    
+
+def test_whitespace_expr():
+    assert parse("1 -1", rule="expr") == binop(1, " ", -1)
+    assert parse("1-1", rule="expr") == binop(1, "-", 1)
+    assert parse("  1-   1 ", rule="expr") == binop(1, "-", 1)
+
 def test_complex_expr():
-    source = "#~5 * (1 2 + 3 (1 + 6 / 3))"
+    source = "#~(6 -7) * (1 2 + 3 (1 + 6 / 3))"
     result = parse(source, rule="expr")
     right_vec = binop(3, " ", binop(1, "+", binop(6, "/", 3)))
     left_vec = binop(1, " ", 2)
-    before_neg = binop(5, "*", binop(left_vec, "+", right_vec))
-    expected = unaryop('#', unaryop('~', before_neg))
+    unary_part = unaryop('#', unaryop('~', binop(6, " ", -7)))
+    expected = binop(unary_part, "*", binop(left_vec, "+", right_vec))
     assert result == expected
 
 def test_functioncall_params():

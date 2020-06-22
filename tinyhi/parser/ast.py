@@ -1,5 +1,6 @@
 from antlr4.CommonTokenStream import CommonTokenStream
 from antlr4.InputStream import InputStream
+from antlr4.tree.Tree import TerminalNodeImpl
 
 from .TinyHiVisitor import TinyHiVisitor
 from .TinyHiLexer import TinyHiLexer
@@ -33,9 +34,23 @@ class ASTNode():
         return self.root == other.root and self.children == other.children
 
 def _childrenToList(ctx):
-    """Extracts all of an ANTLR Context children into a list"""
+    """Extracts all of an ANTLR Context children into a list, 
+    removing all the None in the list"""
     # FIXME: Rename in something better
     return [ctx.getChild(i) for i in range(0, ctx.getChildCount())]
+
+def remove_whitespace(children):
+    """Takes a list of ANTLR Context and TerminalNodeImpl and removes 
+    those tokens that represent whitespace"""
+    result = []
+    for child in children:
+        if type(child) == TerminalNodeImpl:
+            name = TinyHiLexer.ruleNames[child.getSymbol().type - 1]
+            if name in ["WS", "NEWLINE"]:
+                continue
+        result.append(child)
+    return result
+
 
 # TODO: Add info (e.g. line numbers) for printing error messages
 class ASTBuilderVisitor(TinyHiVisitor):  
@@ -46,18 +61,18 @@ class ASTBuilderVisitor(TinyHiVisitor):
         return ASTNode(self.visit(ctx.block()[0]))
     
     def visitBlock(self, ctx):
-        children = _childrenToList(ctx)
+        children = remove_whitespace(_childrenToList(ctx))
         # If it's a named block
-        if len(children) == 6:
-            _, identifier, params, _, statements, _ = children
+        if len(children) == 5:
+            _, identifier, params, statements, _ = children
             return ASTNode({
                 "type": "function", 
-                "name": identifier.getText(), 
+                "name": self.visit(identifier), 
                 "params": self.visit(params)
             }, self.visit(statements))
         
         # Or an unnamed block
-        _, _, statements, _ = children
+        _, statements, _ = children
         return ASTNode({
             "type": "block"
         }, self.visit(statements))
@@ -68,26 +83,27 @@ class ASTBuilderVisitor(TinyHiVisitor):
         children = _childrenToList(ctx)
         _, *params_and_commas, _ = children
         params = params_and_commas[::2]
-        return [p.getText() for p in params]
+        return [self.visit(p) for p in params]
     
     def visitStatements(self, ctx):
         # A statement is a stat with a NEWLINE at the end
         # We remove the NEWLINE and return a list of statements
-        children = _childrenToList(ctx)
-        return [self.visit(stat) for stat in children[::2]]
+        children = remove_whitespace(_childrenToList(ctx))
+        return [self.visit(stat) for stat in children]
     
     def visitAssignStat(self, ctx):
         identifier, _, *expr = _childrenToList(ctx)
         # An assignment can also have no right side ('A <-' is valid)
+        var_name = self.visit(identifier)
         if expr:
             return ASTNode({
                 "type": "assignment", 
-                "variable": identifier.getText()
+                "variable": var_name
             }, [self.visit(expr[0])])
         else:
             return ASTNode({
                 "type": "assignment", 
-                "variable": identifier.getText()
+                "variable": var_name
             })
     
     def visitIfstat(self, ctx):
@@ -114,7 +130,6 @@ class ASTBuilderVisitor(TinyHiVisitor):
                 "onFalse": self.visit(else_stats)
             })
 
-
     def visitUnaryExpr(self, ctx):
         # This is not a rule, just a helper for unary expressions
         op, expr = _childrenToList(ctx)
@@ -130,7 +145,8 @@ class ASTBuilderVisitor(TinyHiVisitor):
         return self.visitUnaryExpr(ctx)
 
     def visitConcatExpr(self, ctx):
-        left, right = _childrenToList(ctx)
+        # This is separate because since the operator is whitespace it gets filtered
+        left, _, right = _childrenToList(ctx)
         # FIXME: A blank space as an operator is really ugly
         return ASTNode({
             "type": "binaryExpr", 
@@ -169,26 +185,30 @@ class ASTBuilderVisitor(TinyHiVisitor):
             "type": "arrayIndexing"
         }, [self.visit(left), self.visit(expr)])
     
-    def visitNumExpr(self, ctx):
+    def visitNumber(self, ctx):
         return ASTNode({
             "type": "number", 
-            "value": int(ctx.getText())
+            "value": int(ctx.NUMBER().getText())
         })
     
-    def visitIdExpr(self, ctx):
+    def visitVarExpr(self, ctx):
         return ASTNode({
             "type": "variable", 
-            "value": ctx.getText()
+            "value": self.visit(ctx.identifier())
         })
     
-    def visitStrExpr(self, ctx):
+    def visitIdentifier(self, ctx):
+        return ctx.IDENTIFIER().getText()
+    
+    def visitString(self, ctx):
         return ASTNode({
             "type": "string", 
-            "value": ctx.getText()[1:-1]
+            "value": ctx.STRING().getText()[1:-1]
         })
     
     def visitParenExpr(self, ctx):
-        _, expr, _ = _childrenToList(ctx)
+        children = remove_whitespace(_childrenToList(ctx))
+        _, expr, _ = children
         return self.visit(expr)
     
 

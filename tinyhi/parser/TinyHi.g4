@@ -2,9 +2,11 @@ grammar TinyHi;
 
 program: NEWLINE* block* ;
 
-statements: (stat NEWLINE)* ;
+statements: (statement NEWLINE)* ;
 
-stat: IDENTIFIER '<-' expr? #assignStat
+statement: WS? stat WS? ;
+
+stat: identifier '<-' expr? #assignStat
     | ifstat                #ifStat
     | whilestat             #whileStat
     | untilstat             #untilStat
@@ -12,44 +14,49 @@ stat: IDENTIFIER '<-' expr? #assignStat
     | expr                  #exprStat
     ;
 
-block: BEGIN (IDENTIFIER formalparams)? NEWLINE statements END; 
+block: BEGIN (identifier formalparams)? NEWLINE statements END; 
 
 ifstat: IF expr BOOLOP expr THEN NEWLINE statements (ELSE NEWLINE statements)? END; 
 whilestat: WHILE expr BOOLOP expr NEWLINE statements END;
 untilstat: UNTIL expr BOOLOP expr NEWLINE statements END;
 
-expr: expr expr             #concatExpr
-    | expr ('*'|'/') expr   #mulDivExpr
-    | expr ('+'|'-') expr   #addSubExpr
-    | functioncall          #callExpr
-    | expr '[' expr ']'     #indexExpr
-    | NUMBER                #numExpr
-    | IDENTIFIER            #idExpr
-    | STRING                #strExpr
-    | '(' expr ')'          #parenExpr
-    | '~' expr              #negExpr
-    | '#' expr              #lenExpr
+expr: WS? '(' expr ')' WS?          #parenExpr
+    | functioncall                  #callExpr
+    | expr WS? '[' expr ']' WS?     #indexExpr
+    | expr WS expr                  #concatExpr
+    | '#' expr                      #lenExpr
+    | '~' expr                      #negExpr
+    | expr ('*'|'/') expr           #mulDivExpr
+    | expr ('+'|'-') expr           #addSubExpr
+    | number                        #numExpr
+    | identifier                    #varExpr
+    | string                        #strExpr
     ;
 
-functioncall: IDENTIFIER actualparams ;
+functioncall: identifier actualparams ;
 actualparams: '(' (expr (',' expr)*)? ')';
-formalparams: '(' (IDENTIFIER (',' IDENTIFIER)*)? ')' ;
+formalparams: '(' (identifier (',' identifier)*)? ')' ;
+
+identifier: WS? IDENTIFIER WS? ;
+number: WS? NUMBER WS? ;
+string: WS? STRING WS? ;
 
 COMMENT: ('//' ~[\n]) -> skip ;
 
 BOOLOP: '='|'<'|'>'|'<='|'>=' ;
 
-IF: 'IF' ;
-THEN: 'THEN' ;
-ELSE: 'ELSE' ;
-END: 'END' ;
-WHILE: 'WHILE' ;
-UNTIL: 'UNTIL' ;
-BEGIN: 'BEGIN' ;
+IF: WS? 'IF' WS? ;
+THEN: WS? 'THEN' WS? ;
+ELSE: WS? 'ELSE' WS?;
+END: WS? 'END' WS? ;
+WHILE: WS? 'WHILE' WS? ;
+UNTIL: WS? 'UNTIL' WS? ;
+BEGIN: WS? 'BEGIN' WS? ;
 
 IDENTIFIER: [a-zA-Z_] [a-zA-Z0-9_]* ;
 NUMBER: '0' | ('+'|'-')? ([1-9] [0-9]*) ;
 
 STRING: '"' ~('"')* '"' ;
+WS: ' '+ ;
 NEWLINE: ('\r'? '\n')+ ;
-WHITESPACE: [ \t] -> skip ;
+TABS: [\t] -> skip ;

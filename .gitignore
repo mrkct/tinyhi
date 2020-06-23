@@ -3,6 +3,9 @@
 notes_*
 jars/
 handouts/
+tinyhi/parser/TinyHi*
+!tinyhi/parser/TinyHi.g4
+tests/test_prof.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

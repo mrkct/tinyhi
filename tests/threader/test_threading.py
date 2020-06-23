@@ -1,5 +1,5 @@
 from tinyhi.threader import thread_ast
-from tests.parser import binop, ASTNode
+from tests.parser import binop, unaryop, ASTNode 
 
 
 def thread2iter(thread, start=0):
@@ -14,7 +14,7 @@ def thread2iter(thread, start=0):
         curr = thread[curr].root['next']
     
 def test_expr():
-    ast = binop(1, "+", binop(7, "*", 3))
+    ast = unaryop('~', binop(1, "+", binop(7, "*", 3)))
     thread = thread_ast(ast)
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
@@ -29,6 +29,8 @@ def test_expr():
     assert x.root['type'] == 'binaryExpr' and x.root['op'] == '*'
     x = next(thread_iter)
     assert x.root['type'] == 'binaryExpr' and x.root['op'] == '+'
+    x = next(thread_iter)
+    assert x.root['type'] == 'unaryExpr' and x.root['op'] == '~'
 
 def test_ifelse():
     ast = ASTNode({

@@ -28,7 +28,17 @@ def thread_ast(ast):
         NODES[LAST].root["next"] = ast.root["id"]
         LAST = ast.root["id"]
     
-    # TODO: unaryExpr
+    def unaryExpr(ast):
+        nonlocal LAST
+        op = ast.root["op"]
+        operand = ast.children[0]
+        dispatch(operand)
+        
+        assign_identifier(ast)
+        NODES[LAST].root["next"] = ast.root["id"]
+        LAST = ast.root["id"]
+    
+
     # TODO: arrayIndexing
     # TODO: functionCall
     
@@ -114,7 +124,8 @@ def thread_ast(ast):
 
     def dispatch(ast):
         FUNCTION_TABLE = {
-            'binaryExpr': binaryExpr, 
+            'binaryExpr': binaryExpr,
+            'unaryExpr': unaryExpr , 
             'if': ifStat, 
             'while': whileStat, 
             'until': untilStat

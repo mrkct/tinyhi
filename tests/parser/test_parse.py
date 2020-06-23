@@ -152,3 +152,25 @@ def test_arrayindexing():
     assert result == ASTNode({
         "type": "arrayIndexing"
     }, [string_addition, binop(0, " ", 2)])
+
+def test_while():
+    source = r"""WHILE 3 > 1
+        1
+    END"""
+    result = parse(source, rule="stat")
+    assert result == ASTNode({
+        "type": "while", 
+        "cond": binop(3, ">", 1), 
+        "onTrue": [ASTNode({"type": "number", "value": 1})]
+    })
+
+def test_until():
+    source = r"""UNTIL 3 > 1
+        1
+    END"""
+    result = parse(source, rule="stat")
+    assert result == ASTNode({
+        "type": "until", 
+        "cond": binop(3, ">", 1), 
+        "onTrue": [ASTNode({"type": "number", "value": 1})]
+    })

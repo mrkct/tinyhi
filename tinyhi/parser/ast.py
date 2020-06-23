@@ -132,6 +132,32 @@ class ASTBuilderVisitor(TinyHiVisitor):
                 "onTrue": self.visit(true_stats), 
                 "onFalse": self.visit(else_stats)
             })
+    
+    def visitWhilestat(self, ctx):
+        children = remove_whitespace(_childrenToList(ctx))
+        _, left, bool_op, right, stats, _ = children
+        cond = ASTNode({
+            "type": "binaryExpr", 
+            "op": bool_op.getText()
+        }, [self.visit(left), self.visit(right)])
+        return ASTNode({
+            "type": "while", 
+            "cond": cond, 
+            "onTrue": self.visit(stats)
+        })
+    
+    def visitUntilstat(self, ctx):
+        children = remove_whitespace(_childrenToList(ctx))
+        _, left, bool_op, right, stats, _ = children
+        cond = ASTNode({
+            "type": "binaryExpr", 
+            "op": bool_op.getText()
+        }, [self.visit(left), self.visit(right)])
+        return ASTNode({
+            "type": "until", 
+            "cond": cond, 
+            "onTrue": self.visit(stats)
+        })
 
     def visitUnaryExpr(self, ctx):
         # This is not a rule, just a helper for unary expressions

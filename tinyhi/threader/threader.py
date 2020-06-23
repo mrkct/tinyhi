@@ -39,7 +39,16 @@ def thread_ast(ast):
         LAST = ast.root["id"]
     
 
-    # TODO: arrayIndexing
+    def arrayIndexing(ast):
+        nonlocal LAST
+        left, index = ast.children
+        dispatch(left)
+        dispatch(index)
+        
+        assign_identifier(ast)
+        NODES[LAST].root["next"] = ast.root["id"]
+        LAST = ast.root["id"]
+
     # TODO: functionCall
     
     def ifStat(ast):
@@ -125,7 +134,8 @@ def thread_ast(ast):
     def dispatch(ast):
         FUNCTION_TABLE = {
             'binaryExpr': binaryExpr,
-            'unaryExpr': unaryExpr , 
+            'unaryExpr': unaryExpr,
+            'arrayIndexing': arrayIndexing,  
             'if': ifStat, 
             'while': whileStat, 
             'until': untilStat

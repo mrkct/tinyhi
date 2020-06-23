@@ -32,6 +32,27 @@ def test_expr():
     x = next(thread_iter)
     assert x.root['type'] == 'unaryExpr' and x.root['op'] == '~'
 
+def test_arrayindexing():
+    ast = ASTNode({
+        'type': 'arrayIndexing'
+    }, [ASTNode({'type': 'variable', 'value': 'arr'}), 
+        binop(3, ' ', 5)]
+    )
+    thread = thread_ast(ast)
+    thread_iter = thread2iter(thread)
+    x = next(thread_iter)
+    assert x.root['type'] == 'start'
+    x = next(thread_iter)
+    assert x.root['type'] == 'variable' and x.root['value'] == 'arr'
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 3
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 5
+    x = next(thread_iter)
+    assert x.root['type'] == 'binaryExpr' and x.root['op'] == ' '
+    x = next(thread_iter)
+    assert x.root['type'] == 'arrayIndexing'
+
 def test_ifelse():
     ast = ASTNode({
         'type': 'if', 

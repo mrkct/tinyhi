@@ -62,37 +62,22 @@ class ASTBuilderVisitor(TinyHiVisitor):
         blocks = remove_whitespace(_childrenToList(ctx))
         if len(blocks) == 0: return None
         
-        blocks = [self.visit(b) for b in blocks]
-
-        def find_first_unnamed_block():
-            """Returns the index and value of the first unnamed block"""
-            for i, block in enumerate(blocks):
-                # If it's an unnamed block
-                if block.root["type"] == "block":
-                    return i, block
-            return -1, None
-        
-        index, first_block = find_first_unnamed_block()    
-        return ASTNode({
-            "type": "start", 
-            "start": first_block if index != -1 else None
-        }, blocks[:index] + blocks[index+1:])
+        return self.visit(blocks[0])
     
     def visitBlock(self, ctx):
         children = remove_whitespace(_childrenToList(ctx))
-        # If it's a named block
+        # If it has params
         if len(children) == 5:
             _, identifier, params, statements, _ = children
-            return ASTNode({
-                "type": "function", 
-                "name": self.visit(identifier), 
-                "params": self.visit(params)
-            }, self.visit(statements))
-        
-        # Or an unnamed block
-        _, statements, _ = children
+            params = self.visit(params)
+        else:
+            # Or if it has none
+            _, identifier, statements, _ = children
+            params = []
         return ASTNode({
-            "type": "block"
+            "type": "function", 
+            "name": self.visit(identifier), 
+            "params": params
         }, self.visit(statements))
     
     def visitFormalparams(self, ctx):
@@ -125,14 +110,14 @@ class ASTBuilderVisitor(TinyHiVisitor):
             })
     
     def visitIfstat(self, ctx):
-        children = _childrenToList(ctx)
-        _, left, bool_op, right, _, _, true_stats, *rest = children
+        children = remove_whitespace(_childrenToList(ctx))
+        _, left, bool_op, right, true_stats, *rest = children
         cond = ASTNode({
             "type": "binaryExpr", 
             "op": bool_op.getText()
         }, [self.visit(left), self.visit(right)])
         # If it doesn't have an ELSE
-        if len(children) == 8:
+        if len(children) == 6:
             return ASTNode({
                 "type": "if", 
                 "cond": cond, 
@@ -140,7 +125,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
                 "onFalse": []
             })
         else:
-            _, _, else_stats, _ = rest
+            _, else_stats, _ = rest
             return ASTNode({
                 "type": "if", 
                 "cond": cond, 
@@ -150,7 +135,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitUnaryExpr(self, ctx):
         # This is not a rule, just a helper for unary expressions
-        op, expr = _childrenToList(ctx)
+        op, expr = remove_whitespace(_childrenToList(ctx))
         return ASTNode({
             "type": "unaryExpr", 
             "op": op.getText()
@@ -173,7 +158,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitBinaryExpr(self, ctx):
         # This is not a rule, just a helper for binary expressions
-        left, op, right = _childrenToList(ctx)
+        left, op, right = remove_whitespace(_childrenToList(ctx))
         return ASTNode({
             "type": "binaryExpr", 
             "op": op.getText()

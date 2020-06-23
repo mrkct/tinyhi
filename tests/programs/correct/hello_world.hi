@@ -1,3 +1,3 @@
-BEGIN
+BEGIN main
     print("Hello, world!")
 END

@@ -22,13 +22,6 @@ def test_named_function_noargs():
         "params": [] 
     }, [])
 
-def test_unnamed_block():
-    source = """BEGIN\nEND"""
-    result = parse(source, rule='block')
-    assert result == ASTNode({
-        "type": "block"
-    })
-
 def test_empty_assignment():
     source = "A <-"
     result = parse(source, rule="stat")
@@ -61,7 +54,7 @@ def test_complex_assignment():
     }, [binop(1, "+", binop(2, "*", 3))])
 
 def test_if_noelse():
-    source = """IF a = 1 THEN
+    source = """IF a = 1
         1
     END"""
     result = parse(source, rule="stat")
@@ -73,7 +66,7 @@ def test_if_noelse():
     })
 
 def test_if_else():
-    source = """IF a <= 2 THEN
+    source = """IF a <= 2
         1
     ELSE
         2

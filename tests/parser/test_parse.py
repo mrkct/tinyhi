@@ -1,34 +1,6 @@
 from tinyhi.parser.ast import ASTBuilderVisitor
 from tinyhi.parser import ASTNode, parse
-
-
-def binop(left, op, right):
-    """Utility for building ASTNodes expressions quickly"""
-    if type(left) == int:
-        left = ASTNode({
-            "type": "number", 
-            "value": left
-        })
-    if type(right) == int:
-        right = ASTNode({
-            "type": "number", 
-            "value": right
-        })
-    return ASTNode({
-        "type": "binaryExpr", 
-        "op": op
-    }, [left, right])
-
-def unaryop(op, expr):
-    if type(expr) == int:
-        expr = ASTNode({
-            "type": "number", 
-            "value": expr
-        })
-    return ASTNode({
-        "type": "unaryExpr", 
-        "op": op
-    }, [expr])
+from tests.parser import binop, unaryop
 
 def test_named_function_args():
     source = r"""BEGIN main(arg1, arg2, arg3)

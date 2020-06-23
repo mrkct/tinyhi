@@ -28,6 +28,10 @@ def thread_ast(ast):
         NODES[LAST].root["next"] = ast.root["id"]
         LAST = ast.root["id"]
     
+    # TODO: unaryExpr
+    # TODO: arrayIndexing
+    # TODO: functionCall
+    
     def ifStat(ast):
         nonlocal LAST
         dispatch(ast.root["cond"])
@@ -77,13 +81,29 @@ def thread_ast(ast):
         assign_identifier(go_back_node)
         NODES[LAST].root['next'] = go_back_node.root['id']
 
-        join_node = ASTNode({
-            'type': 'skip'
-        })
+        join_node = ASTNode({'type': 'skip'})
         assign_identifier(join_node)
         ast.root['nextFalse'] = join_node.root['id']
         LAST = join_node.root['id']
 
+    def untilStat(ast):
+        nonlocal LAST
+
+        before_stats = NODES[LAST]
+        for stat in ast.root['onFalse']:
+            dispatch(stat)
+        dispatch(ast.root['cond'])
+
+        assign_identifier(ast)
+        NODES[LAST].root['next'] = ast.root['id']
+        LAST = ast.root['id']
+
+        join_node = ASTNode({'type': 'skip'})
+        assign_identifier(join_node)
+        ast.root['nextTrue'] = join_node.root['id']
+        ast.root['nextFalse'] = before_stats.root['next']
+        LAST = join_node.root['id']
+        
     
     def catchall(ast):
         nonlocal LAST
@@ -96,7 +116,8 @@ def thread_ast(ast):
         FUNCTION_TABLE = {
             'binaryExpr': binaryExpr, 
             'if': ifStat, 
-            'while': whileStat
+            'while': whileStat, 
+            'until': untilStat
         }
         if ast.root["type"] in FUNCTION_TABLE:
             FUNCTION_TABLE[ast.root["type"]](ast)

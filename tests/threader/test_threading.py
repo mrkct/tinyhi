@@ -87,3 +87,30 @@ def test_while():
     jump_back = thread[true_node.root['next']]
     assert jump_back.root['type'] == 'skip'
     assert jump_back.root['next'] == cond_start.root['id']
+
+def test_until():
+    ast = ASTNode({
+        'type': 'until', 
+        'cond': binop(3, '>', 5), 
+        'onFalse': [ASTNode({'type': 'number', 'value': 1})]
+    })
+    thread = thread_ast(ast)
+    thread_iter = thread2iter(thread)
+    x = next(thread_iter)
+    assert x.root['type'] == 'start'
+    code_start = next(thread_iter)
+    assert code_start.root['type'] == 'number' and code_start.root['value'] == 1
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 3
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 5
+    x = next(thread_iter)
+    assert x.root['type'] == 'binaryExpr' and x.root['op'] == '>'
+    until_node = next(thread_iter)
+    assert until_node.root['type'] == 'until'
+
+    # On false it should go back to the first node
+    assert thread[until_node.root['nextFalse']] == code_start
+    
+    # On true it should go to a skip node and on
+    assert thread[until_node.root['nextTrue']].root['type'] == 'skip'

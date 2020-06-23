@@ -8,10 +8,8 @@ def thread2iter(thread, start=0):
     curr = start
     while curr in thread:
         if 'next' not in thread[curr].root:
-            print('FINE ITER: ', thread[curr])
             yield thread[curr]
             return
-        print('ITER:', thread[curr])
         yield thread[curr]
         curr = thread[curr].root['next']
     
@@ -58,4 +56,34 @@ def test_ifelse():
     join_node_true = thread[next_true.root['next']]
     join_node_false = thread[next_false.root['next']]
     assert join_node_false == join_node_true
-    assert join_node_true.root['type'] == 'join'
+    assert join_node_true.root['type'] == 'skip'
+
+def test_while():
+    ast = ASTNode({
+        'type': 'while', 
+        'cond': binop(3, '>', 5), 
+        'onTrue': [ASTNode({'type': 'number', 'value': 1})]
+    })
+    thread = thread_ast(ast)
+    thread_iter = thread2iter(thread)
+    x = next(thread_iter)
+    assert x.root['type'] == 'start'
+    cond_start = next(thread_iter)
+    assert cond_start.root['type'] == 'number' and cond_start.root['value'] == 3
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 5
+    x = next(thread_iter)
+    assert x.root['type'] == 'binaryExpr' and x.root['op'] == '>'
+    x = next(thread_iter)
+    assert x.root['type'] == 'while'
+
+    # Check that false leads to a skip node
+    false_node = thread[x.root['nextFalse']]
+    assert false_node.root['type'] == 'skip'
+
+    # Check that true leads to a number and then a skip back node
+    true_node = thread[x.root['nextTrue']]
+    assert true_node.root['type'] == 'number' and true_node.root['value'] == 1
+    jump_back = thread[true_node.root['next']]
+    assert jump_back.root['type'] == 'skip'
+    assert jump_back.root['next'] == cond_start.root['id']

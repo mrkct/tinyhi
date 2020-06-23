@@ -10,6 +10,8 @@ def thread_ast(ast):
     }
 
     def assign_identifier(ast):
+        '''Registers the AST in the NODES dict and gives it a numeric id
+        in the 'id' field in the root'''
         nonlocal NEXT_IDENTIFIER
         ast.root["id"] = NEXT_IDENTIFIER
         NODES[ast.root["id"]] = ast
@@ -34,7 +36,7 @@ def thread_ast(ast):
         NODES[LAST].root["next"] = ast.root["id"]
         LAST = ast.root["id"]
 
-        join_node = ASTNode({"type": "join"})
+        join_node = ASTNode({"type": "skip"})
         assign_identifier(join_node)
 
         for stat in ast.root["onTrue"]:
@@ -52,6 +54,36 @@ def thread_ast(ast):
             NODES[LAST].root["next"] = join_node.root["id"]
         del ast.root["next"]
 
+    def whileStat(ast):
+        nonlocal LAST
+
+        node_before_condition = NODES[LAST]
+        dispatch(ast.root['cond'])
+        start_of_cond_node_id = node_before_condition.root['next']
+
+        assign_identifier(ast)
+        NODES[LAST].root['next'] = ast.root['id']
+        LAST = ast.root['id']
+
+        for stat in ast.root['onTrue']: 
+            dispatch(stat)
+        ast.root['nextTrue'] = ast.root['next']
+        del ast.root['next']
+
+        go_back_node = ASTNode({
+            'type': 'skip', 
+            'next': start_of_cond_node_id
+        })
+        assign_identifier(go_back_node)
+        NODES[LAST].root['next'] = go_back_node.root['id']
+
+        join_node = ASTNode({
+            'type': 'skip'
+        })
+        assign_identifier(join_node)
+        ast.root['nextFalse'] = join_node.root['id']
+        LAST = join_node.root['id']
+
     
     def catchall(ast):
         nonlocal LAST
@@ -63,7 +95,8 @@ def thread_ast(ast):
     def dispatch(ast):
         FUNCTION_TABLE = {
             'binaryExpr': binaryExpr, 
-            'if': ifStat
+            'if': ifStat, 
+            'while': whileStat
         }
         if ast.root["type"] in FUNCTION_TABLE:
             FUNCTION_TABLE[ast.root["type"]](ast)

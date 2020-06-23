@@ -156,7 +156,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
         return ASTNode({
             "type": "until", 
             "cond": cond, 
-            "onTrue": self.visit(stats)
+            "onFalse": self.visit(stats)
         })
 
     def visitUnaryExpr(self, ctx):

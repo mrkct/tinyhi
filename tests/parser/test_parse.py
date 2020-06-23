@@ -172,5 +172,5 @@ def test_until():
     assert result == ASTNode({
         "type": "until", 
         "cond": binop(3, ">", 1), 
-        "onTrue": [ASTNode({"type": "number", "value": 1})]
+        "onFalse": [ASTNode({"type": "number", "value": 1})]
     })

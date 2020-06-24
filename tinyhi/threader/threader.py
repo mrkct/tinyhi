@@ -31,8 +31,6 @@ def thread_ast(ast):
         0: ASTNode({'type': 'start', 'id': 0})
     }
 
-    # TODO: Add a 'return' type node at the end of a function declaration?
-
     FUNCTIONS = {}
     def functionDeclaration(ast):
         nonlocal LAST
@@ -49,6 +47,12 @@ def thread_ast(ast):
         FUNCTIONS[ast.root["name"]] = ast.root["id"]
         for stat in ast.children:
             dispatch(stat)
+        return_node = ASTNode({
+            'type': 'return'
+        })
+        assign_identifier(return_node)
+        NODES[LAST].root['next'] = return_node.root['id']
+        
         LAST = saved_last
 
     def assign_identifier(ast):

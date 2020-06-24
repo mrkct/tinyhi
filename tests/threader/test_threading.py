@@ -181,6 +181,8 @@ def test_functiondecl():
     assert x.root['type'] == 'function' and x.root['name'] == 'main'
     x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 1
+    x = next(thread_iter)
+    assert x.root['type'] == 'return'
     assert 'next' not in x.root
     
 def test_nested_functiondecl():
@@ -207,6 +209,8 @@ def test_nested_functiondecl():
     assert x.root['type'] == 'number' and x.root['value'] == 1
     x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 1
+    x = next(thread_iter)
+    assert x.root['type'] == 'return'
     assert 'next' not in x.root
     # Check the nested function
     assert 'nested' in functions
@@ -215,6 +219,6 @@ def test_nested_functiondecl():
     assert x.root['type'] == 'function' and x.root['name'] == 'nested'
     x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 0
+    x = next(thread_iter)
+    assert x.root['type'] == 'return'
     assert 'next' not in x.root
-    
-    

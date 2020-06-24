@@ -137,3 +137,33 @@ def test_until():
     
     # On true it should go to a skip node and on
     assert thread[until_node.root['nextTrue']].root['type'] == 'skip'
+
+def test_empty_assignment():
+    ast = ASTNode({
+        'type': 'assignment', 
+        'variable': 'pippo'
+    })
+    thread = thread_ast(ast)
+    thread_iter = thread2iter(thread)
+    x = next(thread_iter)
+    assert x.root['type'] == 'start'
+    x = next(thread_iter)
+    assert x.root['type'] == 'assignment' and x.root['variable'] == 'pippo'
+
+def test_assignment():
+    ast = ASTNode({
+        'type': 'assignment', 
+        'variable': 'pippo'
+    }, [binop(1, '+', 2)])
+    thread = thread_ast(ast)
+    thread_iter = thread2iter(thread)
+    x = next(thread_iter)
+    assert x.root['type'] == 'start'
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 1
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 2
+    x = next(thread_iter)
+    assert x.root['type'] == 'binaryExpr' and x.root['op'] == '+'
+    x = next(thread_iter)
+    assert x.root['type'] == 'assignment' and x.root['variable'] == 'pippo'

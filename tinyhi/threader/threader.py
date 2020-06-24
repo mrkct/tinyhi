@@ -9,6 +9,24 @@ def thread_ast(ast):
         0: ASTNode({'type': 'start', 'id': 0})
     }
 
+    # TODO: Gestire il caso 'function'
+    # Crea una nuova mappa FUNCTIONS (che verra ritornata dalla funzione)
+    # che contiene NOME-ID INIZIO
+    # Nel threading quando incontro la dichiarazione di una funzione
+    # parto da un nuovo thread, come prima cosa faccio degli assegnamenti
+    # alle variabili locali. In teoria sullo stack ci saranno già i parametri
+    # però essendo uno stack devo fare al contrario gli assegnamenti
+    # PROBLEMA: Come gestire poi la visibilità dei blocchi
+    # Alla fine del thread di una funzione aggiungi un nodo speciale 'return'
+    # Nell'interprete questo andrà a vedere se alla var con stesso nome della
+    # funzione è stata assegnato qualcosa
+
+    # TODO: Se scrivo su una riga tipo '1+1' il suo risultato finisce sullo stack
+    # ma non verrà mai consumato. Non causa problemi in esecuzione ma è molto brutto
+    # ed in teoria si può riempire lo stack facendo 'while true {1}'. Una possibilità
+    # è modificare l'ast builder per segnalare quando un'espressione butta via il suo
+    # valore di ritorno. Basta mettere una regola per exprStat
+
     def assign_identifier(ast):
         '''Registers the AST in the NODES dict and gives it a numeric id
         in the 'id' field in the root'''
@@ -49,8 +67,15 @@ def thread_ast(ast):
         NODES[LAST].root["next"] = ast.root["id"]
         LAST = ast.root["id"]
 
-    # TODO: functionCall
-    
+    def functionCall(ast):
+        nonlocal LAST
+        params = ast.children
+        for p in params:
+            dispatch(p)
+        assign_identifier(ast)
+        NODES[LAST].root["next"] = ast.root["id"]
+        LAST = ast.root["id"]
+
     def ifStat(ast):
         nonlocal LAST
         dispatch(ast.root["cond"])
@@ -123,6 +148,15 @@ def thread_ast(ast):
         ast.root['nextFalse'] = before_stats.root['next']
         LAST = join_node.root['id']
         
+    def assignment(ast):
+        nonlocal LAST
+
+        if len(ast.children) > 0:
+            value = ast.children[0]
+            dispatch(value)
+        assign_identifier(ast)
+        NODES[LAST].root['next'] = ast.root['id']
+        LAST = ast.root['id']
     
     def catchall(ast):
         nonlocal LAST
@@ -135,10 +169,12 @@ def thread_ast(ast):
         FUNCTION_TABLE = {
             'binaryExpr': binaryExpr,
             'unaryExpr': unaryExpr,
-            'arrayIndexing': arrayIndexing,  
+            'arrayIndexing': arrayIndexing, 
+            'functionCall': functionCall, 
             'if': ifStat, 
             'while': whileStat, 
-            'until': untilStat
+            'until': untilStat, 
+            'assignment': assignment
         }
         if ast.root["type"] in FUNCTION_TABLE:
             FUNCTION_TABLE[ast.root["type"]](ast)

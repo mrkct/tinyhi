@@ -48,7 +48,9 @@ def thread_ast(ast):
         for stat in ast.children:
             dispatch(stat)
         return_node = ASTNode({
-            'type': 'return'
+            'type': 'return', 
+            # This is useful for when we run the program
+            'functionName': ast.root['name']
         })
         assign_identifier(return_node)
         NODES[LAST].root['next'] = return_node.root['id']

@@ -15,7 +15,7 @@ def thread2iter(thread, start=0):
     
 def test_expr():
     ast = unaryop('~', binop(1, "+", binop(7, "*", 3)))
-    thread = thread_ast(ast)
+    thread, _ = thread_ast(ast)
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
     assert x.root['type'] == 'start'
@@ -38,7 +38,7 @@ def test_arrayindexing():
     }, [ASTNode({'type': 'variable', 'value': 'arr'}), 
         binop(3, ' ', 5)]
     )
-    thread = thread_ast(ast)
+    thread, _ = thread_ast(ast)
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
     assert x.root['type'] == 'start'
@@ -60,7 +60,7 @@ def test_ifelse():
         'onTrue': [ASTNode({'type': 'number', 'value': 1})], 
         'onFalse': [ASTNode({'type': 'number', 'value': 0})]
     })
-    thread = thread_ast(ast)
+    thread, _ = thread_ast(ast)
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
     assert x.root['type'] == 'start'
@@ -87,7 +87,7 @@ def test_while():
         'cond': binop(3, '>', 5), 
         'onTrue': [ASTNode({'type': 'number', 'value': 1})]
     })
-    thread = thread_ast(ast)
+    thread, _ = thread_ast(ast)
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
     assert x.root['type'] == 'start'
@@ -117,7 +117,7 @@ def test_until():
         'cond': binop(3, '>', 5), 
         'onFalse': [ASTNode({'type': 'number', 'value': 1})]
     })
-    thread = thread_ast(ast)
+    thread, _ = thread_ast(ast)
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
     assert x.root['type'] == 'start'
@@ -143,7 +143,7 @@ def test_empty_assignment():
         'type': 'assignment', 
         'variable': 'pippo'
     })
-    thread = thread_ast(ast)
+    thread, _ = thread_ast(ast)
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
     assert x.root['type'] == 'start'
@@ -155,7 +155,7 @@ def test_assignment():
         'type': 'assignment', 
         'variable': 'pippo'
     }, [binop(1, '+', 2)])
-    thread = thread_ast(ast)
+    thread, _ = thread_ast(ast)
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
     assert x.root['type'] == 'start'
@@ -167,3 +167,54 @@ def test_assignment():
     assert x.root['type'] == 'binaryExpr' and x.root['op'] == '+'
     x = next(thread_iter)
     assert x.root['type'] == 'assignment' and x.root['variable'] == 'pippo'
+
+def test_functiondecl():
+    ast = ASTNode({
+        'type': 'function', 
+        'name': 'main', 
+        'params': []
+    }, [ASTNode({'type': 'number', 'value': 1})])
+    thread, functions = thread_ast(ast)
+    assert 'main' in functions
+    thread_iter = thread2iter(thread, start=functions['main'])
+    x = next(thread_iter)
+    assert x.root['type'] == 'function' and x.root['name'] == 'main'
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 1
+    assert 'next' not in x.root
+    
+def test_nested_functiondecl():
+    nested_func = ASTNode({
+        'type': 'function', 
+        'name': 'nested', 
+        'params': []
+    }, [ASTNode({'type': 'number', 'value': 0})])
+    ast = ASTNode({
+        'type': 'function', 
+        'name': 'main', 
+        'params': []
+    }, [ASTNode({'type': 'number', 'value': 1}), 
+        nested_func, 
+        ASTNode({'type': 'number', 'value': 1})]
+    )
+    thread, functions = thread_ast(ast)
+    assert 'main' in functions
+    thread_iter = thread2iter(thread, start=functions['main'])
+    # Check that the execution of 'main' goes through the nested function
+    x = next(thread_iter)
+    assert x.root['type'] == 'function' and x.root['name'] == 'main'
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 1
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 1
+    assert 'next' not in x.root
+    # Check the nested function
+    assert 'nested' in functions
+    thread_iter = thread2iter(thread, start=functions['nested'])
+    x = next(thread_iter)
+    assert x.root['type'] == 'function' and x.root['name'] == 'nested'
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 0
+    assert 'next' not in x.root
+    
+    

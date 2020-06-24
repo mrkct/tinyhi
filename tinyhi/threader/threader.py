@@ -3,29 +3,53 @@ from tinyhi.parser import ASTNode
 
 
 def thread_ast(ast):
+    """Modifies the AST roots with new fields that allow to follow the 
+    execution of the program. In particular this function will add:
+    - A `nextTrue` and `nextFalse` field for IF, WHILE, UNTIL that contains 
+    the ID of the node to follow based on the result of the value on the top 
+    of the stack
+    - A `next` field for all the other nodes, containing the ID of the next 
+    node to be executed
+    - An `id` field for all nodes that can be used to quickly access that node
+    in the returned `NODES` dictionary
+
+    In some points a new node with type `skip` is added. These can be skipped 
+    and are only useful for simplifying the execution
+
+    Returns:
+        NODES: A dictionary that allows to access quickly any node in the AST 
+        using their ID
+        FUNCTIONS: A dictionary that maps each function name to the ID of the 
+        node where their code starts
+    Throws:
+        ValueError if 2 functions with the same name appear in the AST
+    
+    """
     NEXT_IDENTIFIER = 2
     LAST = 0
     NODES = {
         0: ASTNode({'type': 'start', 'id': 0})
     }
 
-    # TODO: Gestire il caso 'function'
-    # Crea una nuova mappa FUNCTIONS (che verra ritornata dalla funzione)
-    # che contiene NOME-ID INIZIO
-    # Nel threading quando incontro la dichiarazione di una funzione
-    # parto da un nuovo thread, come prima cosa faccio degli assegnamenti
-    # alle variabili locali. In teoria sullo stack ci saranno già i parametri
-    # però essendo uno stack devo fare al contrario gli assegnamenti
-    # PROBLEMA: Come gestire poi la visibilità dei blocchi
-    # Alla fine del thread di una funzione aggiungi un nodo speciale 'return'
-    # Nell'interprete questo andrà a vedere se alla var con stesso nome della
-    # funzione è stata assegnato qualcosa
+    # TODO: Add a 'return' type node at the end of a function declaration?
 
-    # TODO: Se scrivo su una riga tipo '1+1' il suo risultato finisce sullo stack
-    # ma non verrà mai consumato. Non causa problemi in esecuzione ma è molto brutto
-    # ed in teoria si può riempire lo stack facendo 'while true {1}'. Una possibilità
-    # è modificare l'ast builder per segnalare quando un'espressione butta via il suo
-    # valore di ritorno. Basta mettere una regola per exprStat
+    FUNCTIONS = {}
+    def functionDeclaration(ast):
+        nonlocal LAST
+        if ast.root['name'] in FUNCTIONS:
+            # TODO: Maybe change with a custom exception?
+            message = f'Function name "{ast.root["name"]}" was already used'
+            raise ValueError(message)
+        # A function declaration could happen in the middle of another function
+        # We need to save the previous LAST so that it can pass through the 
+        # declaration
+        saved_last = LAST
+        assign_identifier(ast)
+        LAST = ast.root["id"]
+        FUNCTIONS[ast.root["name"]] = ast.root["id"]
+        for stat in ast.children:
+            dispatch(stat)
+        LAST = saved_last
 
     def assign_identifier(ast):
         '''Registers the AST in the NODES dict and gives it a numeric id
@@ -56,7 +80,6 @@ def thread_ast(ast):
         NODES[LAST].root["next"] = ast.root["id"]
         LAST = ast.root["id"]
     
-
     def arrayIndexing(ast):
         nonlocal LAST
         left, index = ast.children
@@ -174,11 +197,12 @@ def thread_ast(ast):
             'if': ifStat, 
             'while': whileStat, 
             'until': untilStat, 
-            'assignment': assignment
+            'assignment': assignment, 
+            'function': functionDeclaration
         }
         if ast.root["type"] in FUNCTION_TABLE:
             FUNCTION_TABLE[ast.root["type"]](ast)
         else:
             catchall(ast)
     dispatch(ast)
-    return NODES
+    return NODES, FUNCTIONS

@@ -1,0 +1,10 @@
+BEGIN main(argc)
+    BEGIN print(what)
+        do_something(what)
+    END
+    print("Hello")
+    print(" WORLD")
+    BEGIN useless()
+        useless <- 1
+    END
+END

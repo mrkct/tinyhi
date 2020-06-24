@@ -56,9 +56,6 @@ def remove_whitespace(children):
 # TODO: Add info (e.g. line numbers) for printing error messages
 class ASTBuilderVisitor(TinyHiVisitor):  
     def visitProgram(self, ctx):
-        # TODO: Handle the case of an empty program
-        # TODO: Handle better the case of many unnamed blocks
-        # FIXME: The spec says to run the first UNNAMED block, not the first
         blocks = remove_whitespace(_childrenToList(ctx))
         if len(blocks) == 0: return None
         

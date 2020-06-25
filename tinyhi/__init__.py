@@ -1,4 +1,2 @@
 from .parser import parse, ParseError
-
-def run(ast):
-    pass
+from .interpreter import run

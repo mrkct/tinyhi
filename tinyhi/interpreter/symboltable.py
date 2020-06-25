@@ -1,5 +1,5 @@
 from .value import Value
-from .run import ExecutionError
+from .errors import ExecutionError
 
 
 class SymbolTable:

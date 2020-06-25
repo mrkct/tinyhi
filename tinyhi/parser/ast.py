@@ -35,8 +35,7 @@ class ASTNode():
         return self.root == other.root and self.children == other.children
 
 def _childrenToList(ctx):
-    """Extracts all of an ANTLR Context children into a list, 
-    removing all the None in the list"""
+    """Extracts all of an ANTLR Context children into a list"""
     # FIXME: Rename in something better
     return [ctx.getChild(i) for i in range(0, ctx.getChildCount())]
 
@@ -194,12 +193,22 @@ class ASTBuilderVisitor(TinyHiVisitor):
         return self.visitBinaryExpr(ctx)
 
     def visitFunctioncall(self, ctx):
-        func_identifier, actual_params = _childrenToList(ctx)
+        func_identifier, actual_params = remove_whitespace(_childrenToList(ctx))
         return ASTNode({
             "type": "functionCall", 
             "functionName": self.visit(func_identifier)
         }, self.visit(actual_params))
     
+    
+    def visitCallExpr(self, ctx):
+        # This looks useless but it's actually necessary for parsing 'f(1) '
+        # The default implementation of ParseTreeVisitor delegates this to 
+        # visitChilder, which then uses aggregateResult, which by default
+        # returns the last child of all, which in our case is whitespace
+        function_call = remove_whitespace(_childrenToList(ctx))[0]
+        return self.visit(function_call)
+    
+
     def visitActualparams(self, ctx):
         # This is a list of expr with commas in between enclosed in parenthesis
         _, *params_and_commas, _ = _childrenToList(ctx)

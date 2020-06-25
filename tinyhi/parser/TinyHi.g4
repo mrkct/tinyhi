@@ -21,7 +21,7 @@ whilestat: WHILE expr BOOLOP expr NEWLINE statements END;
 untilstat: UNTIL expr BOOLOP expr NEWLINE statements END;
 
 expr: WS? '(' expr ')' WS?          #parenExpr
-    | functioncall                  #callExpr
+    | WS? functioncall WS?          #callExpr
     | expr WS? '[' expr ']' WS?     #indexExpr
     | expr WS expr                  #concatExpr
     | WS? '#' expr                  #lenExpr

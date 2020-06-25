@@ -1,0 +1,14 @@
+BEGIN main
+    BEGIN fib(x)
+        IF x = 0
+            fib <- 0
+        ELSE
+            IF x = 1
+                fib <- 1
+            ELSE
+                fib <- fib(x - 1) + fib(x - 2)
+            END
+        END
+    END
+    main <- fact(10)
+END

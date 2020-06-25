@@ -133,6 +133,18 @@ def test_functioncall_noparams():
         "functionName": "do_something"
     })
 
+def test_sum_functioncall():
+    source = "main(1) + 1"
+    result = parse(source, rule="expr")
+    fcall = ASTNode({
+        "type": "functionCall", 
+        "functionName": "main"
+    }, [ASTNode({"type": "number", "value": 1})])
+    assert result == ASTNode({
+        "type": "binaryExpr", 
+        "op": "+"
+    }, [fcall, ASTNode({"type": "number", "value": 1})])
+
 def test_arrayindexing():
     source = "array[2 4]"
     result = parse(source, rule="expr")

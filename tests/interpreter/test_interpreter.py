@@ -60,3 +60,25 @@ def test_operations():
         main <- # 1 2 3
     END"""
     assert run(source) == 3
+
+def test_functions():
+    source = r"""BEGIN main
+        BEGIN func()
+            func <- 1
+        END
+        main <- func()
+    END"""
+    assert run(source) == 1
+
+def test_var_scope():
+    source = r"""BEGIN main
+        a <- 0
+        BEGIN func()
+            a <- 1
+        END
+        func()
+        main <- a
+    END
+    """
+    assert run(source) == 0
+

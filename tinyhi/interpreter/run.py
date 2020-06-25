@@ -22,25 +22,43 @@ def strtype(x):
 
 def run_from_thread(thread, functions, start):
     IP = functions[start]
-    st_stack = [] # SymbolTable stack
-    stack = []
+    st_stack = []       # SymbolTable stack
+    ret_stack = [-1]    # Contains the return IP address for functions
+    stack = []          # Contains the actual values for the computations
 
     def handle_skip(node):
         return node.root['next']
     
     def handle_function(node):
+        # This is called when we enter a function call
         # We are in a function therefore we don't care about the scope 
         # of who called us
         st = SymbolTable()
-        # TODO: Pop all params in reverse order and set the params 
-        # in the symboltable to those values & immutable
+        for param in reversed(node.root['params']):
+            st.put(param, stack.pop(), immutable=True)
         st_stack.append(st)
         return node.root['next']
+
+    def handle_functionCall(node):
+        # Care, we need to save the IP just after this node or we would run 
+        # this node again after we return from a function
+        ret_stack.append(node.root["next"])
+        return functions[node.root["functionName"]]
+    
+    def handle_return(node):
+        # We throw away the symbol table for the function
+        # but we also need to check if a return value was set. 
+        # In that case push that value on the stack
+        st = st_stack.pop()
+        func_name = fname = node.root["functionName"]
+        x = st.get(func_name)
+        if x != None:
+            stack.append(x)
+        return ret_stack.pop()
 
     def handle_const(node):
         stack.append(node.root['value'])
         return node.root['next']
-    
 
     def handle_variable(node):
         symbol_table = st_stack[-1]
@@ -225,6 +243,7 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
 
 
+
     NODE_FUNCTIONS = {
         'skip': handle_skip, 
         'function': handle_function, 
@@ -233,26 +252,20 @@ def run_from_thread(thread, functions, start):
         'variable': handle_variable, 
         'binaryExpr': handle_binaryExpr, 
         'unaryExpr': handle_unaryExpr, 
-        'assignment': handle_assignment
+        'assignment': handle_assignment, 
+        'functionCall': handle_functionCall,
+        'return': handle_return
     }
+
     while True:
+        # End the program
+        if IP == -1:
+            if len(stack) > 0:
+                return stack.pop()
+            return None
         node = thread[IP]
         if node.root['type'] in NODE_FUNCTIONS:
             IP = NODE_FUNCTIONS[node.root['type']](node)
-        elif node.root['type'] == 'return':
-            # Return is a special case because it might end the program
-            if len(stack) == 0: 
-                # There is no return address, the program is over
-                st = st_stack[-1]
-                return st.get(node.root['functionName'])
-            # The return address was stored on the stack
-            IP = stack.pop()
-            # We throw away the symbol table for the function
-            # but we also need to check if a return value was set. 
-            # In that case push that value on the stack
-            st = st_stack.pop()
-            if x := st.get(node.root['functionName']):
-                stack.append(x)
         else:
             raise ExecutionError(
                 f'WARN: Unknown node type "{node.root["type"]}"'

@@ -126,7 +126,7 @@ def test_functioncall_params():
     assert result == expected
 
 def test_functioncall_noparams():
-    source = "do_something()";
+    source = "  do_something()"
     result = parse(source, rule="expr")
     assert result == ASTNode({
         "type": "functionCall", 

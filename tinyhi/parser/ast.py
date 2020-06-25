@@ -194,10 +194,10 @@ class ASTBuilderVisitor(TinyHiVisitor):
         return self.visitBinaryExpr(ctx)
 
     def visitFunctioncall(self, ctx):
-        function_name, actual_params = _childrenToList(ctx)
+        func_identifier, actual_params = _childrenToList(ctx)
         return ASTNode({
             "type": "functionCall", 
-            "functionName": function_name.getText()
+            "functionName": self.visit(func_identifier)
         }, self.visit(actual_params))
     
     def visitActualparams(self, ctx):

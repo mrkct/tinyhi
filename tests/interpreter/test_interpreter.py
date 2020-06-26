@@ -108,3 +108,33 @@ def test_if():
         main <- a
     END"""
     assert run(source) == 7
+
+def test_var_scope():
+    source = r"""BEGIN main
+        a <- 0
+        BEGIN func()
+            a <- 1
+        END
+        func()
+        main <- a
+    END
+    """
+    assert run(source) == 0
+    return
+    source = r"""BEGIN main
+        a <- 0
+        IF a = 0
+            b <- 3
+        END
+        main <- b
+    END"""
+    with pytest.raises(ExecutionError):
+        run(source)
+    
+def test_native_print(capsys):
+    source = r"""BEGIN main
+        print("Hello, world!")
+    END"""
+    run(source)
+    stdout = capsys.readouterr().out
+    assert stdout == "Hello, world!\n"

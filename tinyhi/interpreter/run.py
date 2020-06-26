@@ -26,6 +26,14 @@ def run_from_thread(thread, functions, start):
     ret_stack = [-1]    # Contains the return IP address for functions
     stack = []          # Contains the actual values for the computations
 
+    def tinyhi_print(node):
+        print(stack.pop())
+        return node.root["next"]
+
+    NATIVE_FUNCTIONS = {
+        'print': tinyhi_print
+    }
+
     def handle_skip(node):
         return node.root['next']
     
@@ -40,6 +48,8 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
 
     def handle_functionCall(node):
+        if node.root["functionName"] in NATIVE_FUNCTIONS:
+            return NATIVE_FUNCTIONS[node.root["functionName"]](node)
         # Care, we need to save the IP just after this node or we would run 
         # this node again after we return from a function
         ret_stack.append(node.root["next"])

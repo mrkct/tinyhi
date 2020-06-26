@@ -120,8 +120,6 @@ def test_var_scope():
     END
     """
     assert run(source) == 0
-    # FIXME: Scope is not respected in IF/WHILE/UNTIL
-    return
     source = r"""BEGIN main
         a <- 0
         IF a = 0

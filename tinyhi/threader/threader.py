@@ -109,30 +109,36 @@ def thread_ast(ast):
         nonlocal LAST
         dispatch(ast.root["cond"])
 
+        enter_block_scope = ASTNode({"type": "enterBlockScope"})
+        assign_identifier(enter_block_scope)
+        NODES[LAST].root["next"] = enter_block_scope.root["id"]
+        LAST = enter_block_scope.root["id"]
+
         assign_identifier(ast)
         NODES[LAST].root["next"] = ast.root["id"]
         LAST = ast.root["id"]
 
-        join_node = ASTNode({"type": "skip"})
-        assign_identifier(join_node)
+        exit_block_scope = ASTNode({"type": "exitBlockScope"})
+        assign_identifier(exit_block_scope)
 
         if len(ast.root["onTrue"]) == 0:
-            ast.root["nextTrue"] = join_node.root["id"]
+            ast.root["nextTrue"] = exit_block_scope.root["id"]
         else:
             for stat in ast.root["onTrue"]:
                 dispatch(stat)
             ast.root["nextTrue"] = ast.root["next"]
-            NODES[LAST].root["next"] = join_node.root["id"]
+            NODES[LAST].root["next"] = exit_block_scope.root["id"]
 
         if len(ast.root["onFalse"]) == 0:
-            ast.root["nextFalse"] = join_node.root["id"]
+            ast.root["nextFalse"] = exit_block_scope.root["id"]
         else:
             LAST = ast.root["id"]
             for stat in ast.root["onFalse"]:
                 dispatch(stat)
             ast.root["nextFalse"] = ast.root["next"]
-            NODES[LAST].root["next"] = join_node.root["id"]
-        LAST = join_node.root["id"]
+            NODES[LAST].root["next"] = exit_block_scope.root["id"]
+        LAST = exit_block_scope.root["id"]
+
         del ast.root["next"]
 
     def whileStat(ast):

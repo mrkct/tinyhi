@@ -1,12 +1,9 @@
 from .symboltable import SymbolTable
 from .errors import ExecutionError
+from .undefined import Undefined
 from tinyhi.parser import parse
 from tinyhi.threader import thread_ast
 
-
-# TODO: Handle the case of an expr in a single line
-# TODO: Handle the case of a void call in an expr
-# TODO: Handle the case of clearing a variable
 
 def strtype(x):
     """Returns a string representation of the type of the value
@@ -17,12 +14,12 @@ def strtype(x):
         return 'STRING'
     elif type(x) == list:
         return 'LIST'
-    elif type(x) == None:
-        return 'Void'
+    elif x == Undefined:
+        return 'UNDEFINED'
     else:
         return f'<INVALID: {x.__class__.__name__}>'
 
-def run_from_thread(thread, functions, start):
+def run_from_thread(thread, functions, start, print_dbg=False):
     IP = functions[start]
     st_stack = []       # SymbolTable stack
     ret_stack = [-1]    # Contains the return IP address for functions
@@ -35,10 +32,17 @@ def run_from_thread(thread, functions, start):
         # This is called when we enter a function call
         # We are in a function therefore we don't care about the scope 
         # of who called us
-        st = SymbolTable()
+        table = SymbolTable()
+        # FIXME: Disallow using the function name as a param
         for param in reversed(node.root['params']):
-            st.put(param, stack.pop(), immutable=True)
-        st_stack.append(st)
+            table.put(param, stack.pop(), immutable=True)
+        # We also need to put the function name, even without a value 
+        # because if we were to set it first in a block scope it would 
+        # end up in a SymbolTable that would be thrown away at the end 
+        # of that scope
+        table.put(node.root['name'], Undefined)
+        st_stack.append(table)
+        
         return node.root['next']
 
     def handle_functionCall(node):
@@ -50,12 +54,12 @@ def run_from_thread(thread, functions, start):
     def handle_return(node):
         # We throw away the symbol table for the function
         # but we also need to check if a return value was set. 
-        # In that case push that value on the stack
         st = st_stack.pop()
-        func_name = fname = node.root["functionName"]
+        func_name = node.root["functionName"]
         x = st.get(func_name)
-        # We append even if its None. It will get thrown away in any case
-        stack.append(x)
+        # We append even if its None. If it's a useless value it will 
+        # be thrown away in the print node
+        stack.append(x if x != None else Undefined)
         return ret_stack.pop()
 
     def handle_const(node):
@@ -252,7 +256,7 @@ def run_from_thread(thread, functions, start):
 
     def handle_print(node):
         value = stack.pop()
-        if value == None: 
+        if value == Undefined: 
             return node.root["next"]
         if type(value) not in [int, str, list]:
             raise ExecutionError(
@@ -261,6 +265,15 @@ def run_from_thread(thread, functions, start):
         print(value)
         return node.root["next"]
 
+    def handle_enter_block_scope(node):
+        st_stack.append(
+            SymbolTable(parent=st_stack[-1])
+        )
+        return node.root["next"]
+    
+    def handle_exit_block_scope(node):
+        st_stack.pop()
+        return node.root["next"]
 
     NODE_FUNCTIONS = {
         'skip': handle_skip, 
@@ -276,13 +289,19 @@ def run_from_thread(thread, functions, start):
         'print': handle_print, 
         'if': handle_conditional_jump, 
         'while': handle_conditional_jump, 
-        'until': handle_conditional_jump
+        'until': handle_conditional_jump, 
+        'enterBlockScope': handle_enter_block_scope, 
+        'exitBlockScope': handle_exit_block_scope
     }
 
     while True:
         # End the program
         if IP == -1:
-            return stack.pop()
+            return_value = stack.pop()
+            if return_value == Undefined:
+                return None
+            else:
+                return return_value
         node = thread[IP]
         if node.root['type'] in NODE_FUNCTIONS:
             IP = NODE_FUNCTIONS[node.root['type']](node)
@@ -307,4 +326,8 @@ def run(source, throw_errors=False):
     ast = parse(source, throw_errors=True)
     thread, functions = thread_ast(ast)
 
-    return run_from_thread(thread, functions, ast.root['name'])
+    return run_from_thread(
+        thread, 
+        functions, 
+        ast.root['name']
+    )

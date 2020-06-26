@@ -70,16 +70,18 @@ def test_ifelse():
     assert x.root['type'] == 'number' and x.root['value'] == 2
     x = next(thread_iter)
     assert x.root['type'] == 'binaryExpr' and x.root['op'] == '<'
+    enter_scope = next(thread_iter)
+    assert enter_scope.root['type'] == 'enterBlockScope'
     if_node = next(thread_iter)
     assert if_node.root['type'] == 'if'
     next_true = thread[if_node.root['nextTrue']]
     assert next_true.root['type'] == 'number' and next_true.root['value'] == 1
     next_false = thread[if_node.root['nextFalse']]
     assert next_false.root['type'] == 'number' and next_false.root['value'] == 0
-    join_node_true = thread[next_true.root['next']]
-    join_node_false = thread[next_false.root['next']]
-    assert join_node_false == join_node_true
-    assert join_node_true.root['type'] == 'skip'
+    exit_scope_true = thread[next_true.root['next']]
+    exit_scope_false = thread[next_false.root['next']]
+    assert exit_scope_false == exit_scope_true
+    assert exit_scope_true.root['type'] == 'exitBlockScope'
 
 def test_while():
     ast = ASTNode({

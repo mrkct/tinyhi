@@ -1,4 +1,3 @@
-from .value import Value
 from .errors import ExecutionError
 
 
@@ -20,8 +19,7 @@ class SymbolTable:
         Args:
             variable: A string with the name of the variable to find
         Returns:
-            a `Value` if the variable was found in this table or its parent
-            `None` if it it couldn't be found
+            The value previously stored or None if the variable was never set
         """
         if variable in self.variables:
             return self.variables[variable]['value']
@@ -33,7 +31,7 @@ class SymbolTable:
         """Sets the value of a variable to a certain value
         Args:
             name: A string with the name of the variable to set
-            value: A `Value` object to set the variable to
+            value: The value to set the variable to
             immutable: If it is set to `True` then the variable won't be able 
             to change its value. Defaults to `False`
         Throws:
@@ -55,5 +53,3 @@ class SymbolTable:
         if self.parent:
             return f'[{repr(self.parent)} + {keyvals}]'
         return f'[{keyvals}]'
-
-    # TODO: A way to clear a variable value

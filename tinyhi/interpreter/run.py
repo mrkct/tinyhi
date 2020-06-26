@@ -252,12 +252,11 @@ def run_from_thread(thread, functions, start):
         stack.append(OPERATIONS[op](expr))
         return node.root['next']
 
-    def handle_if(node):
+    def handle_conditional_jump(node):
         cond = stack.pop()
         if type(cond) != bool:
             raise ExecutionError(f'IF: stack.pop returned a non-bool value ({cond})')
         return node.root["nextTrue"] if cond else node.root["nextFalse"]
-
 
     NODE_FUNCTIONS = {
         'skip': handle_skip, 
@@ -270,7 +269,9 @@ def run_from_thread(thread, functions, start):
         'assignment': handle_assignment, 
         'functionCall': handle_functionCall,
         'return': handle_return, 
-        'if': handle_if
+        'if': handle_conditional_jump, 
+        'while': handle_conditional_jump, 
+        'until': handle_conditional_jump
     }
 
     while True:

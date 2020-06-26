@@ -130,11 +130,39 @@ def test_var_scope():
     END"""
     with pytest.raises(ExecutionError):
         run(source)
-    
-def test_native_print(capsys):
+
+def test_while():
     source = r"""BEGIN main
-        print("Hello, world!")
+        x <- 0
+        WHILE x < 10
+            x <- x + 1
+        END
+        main <- x
     END"""
-    run(source)
-    stdout = capsys.readouterr().out
-    assert stdout == "Hello, world!\n"
+    assert run(source) == 10
+    source = r"""BEGIN main
+        x <- 0
+        WHILE x > 10
+            x <- x + 1
+        END
+        main <- x
+    END"""
+    assert run(source) == 0
+
+def test_until(capsys):
+    source = r"""BEGIN main
+        x <- 0
+        UNTIL x = 10
+            x <- x + 1
+        END
+        main <- x
+    END"""
+    assert run(source) == 10
+    source = r"""BEGIN main
+        x <- 0
+        UNTIL x < 10
+            x <- x + 1
+        END
+        main <- x
+    END"""
+    assert run(source) == 1

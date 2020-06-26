@@ -148,14 +148,25 @@ def thread_ast(ast):
         dispatch(ast.root['cond'])
         start_of_cond_node_id = node_before_condition.root['next']
 
+        enter_block_scope = ASTNode({'type': 'enterBlockScope'})
+        assign_identifier(enter_block_scope)
+        NODES[LAST].root['next'] = enter_block_scope.root['id']
+        LAST = enter_block_scope.root['id']
+
         assign_identifier(ast)
         NODES[LAST].root['next'] = ast.root['id']
         LAST = ast.root['id']
 
+        # The 'cond == True' case
         for stat in ast.root['onTrue']: 
             dispatch(stat)
         ast.root['nextTrue'] = ast.root['next']
         del ast.root['next']
+
+        exit_block_scope = ASTNode({'type': 'exitBlockScope'})
+        assign_identifier(exit_block_scope)
+        NODES[LAST].root['next'] = exit_block_scope.root['id']
+        LAST = exit_block_scope.root['id']
 
         go_back_node = ASTNode({
             'type': 'skip', 
@@ -164,19 +175,32 @@ def thread_ast(ast):
         assign_identifier(go_back_node)
         NODES[LAST].root['next'] = go_back_node.root['id']
 
-        join_node = ASTNode({'type': 'skip'})
-        assign_identifier(join_node)
-        ast.root['nextFalse'] = join_node.root['id']
-        LAST = join_node.root['id']
+        # Why are you putting 2 exitBlockScope nodes?
+        # Because if we don't add another one after the WHILE block then when 
+        # we exit we would still be in the block scope just entered
+        # We could handle that in the WHILE but I think it's cleaner this way
+        exit_block_scope = ASTNode({'type': 'exitBlockScope'})
+        assign_identifier(exit_block_scope)
+        ast.root['nextFalse'] = exit_block_scope.root['id']
+        LAST = exit_block_scope.root['id']
 
     def untilStat(ast):
         nonlocal LAST
 
-        before_stats = NODES[LAST]
+        enter_block_scope = ASTNode({'type': 'enterBlockScope'})
+        assign_identifier(enter_block_scope)
+        NODES[LAST].root['next'] = enter_block_scope.root['id']
+        LAST = enter_block_scope.root['id']
+        
         for stat in ast.root['onFalse']:
             dispatch(stat)
-        dispatch(ast.root['cond'])
+        
+        exit_block_scope = ASTNode({'type': 'exitBlockScope'})
+        assign_identifier(exit_block_scope)
+        NODES[LAST].root['next'] = exit_block_scope.root['id']
+        LAST = exit_block_scope.root['id']
 
+        dispatch(ast.root['cond'])
         assign_identifier(ast)
         NODES[LAST].root['next'] = ast.root['id']
         LAST = ast.root['id']
@@ -184,7 +208,7 @@ def thread_ast(ast):
         join_node = ASTNode({'type': 'skip'})
         assign_identifier(join_node)
         ast.root['nextTrue'] = join_node.root['id']
-        ast.root['nextFalse'] = before_stats.root['next']
+        ast.root['nextFalse'] = enter_block_scope.root['id']
         LAST = join_node.root['id']
         
     def assignment(ast):

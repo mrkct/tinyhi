@@ -100,15 +100,19 @@ def test_while():
     x = next(thread_iter)
     assert x.root['type'] == 'binaryExpr' and x.root['op'] == '>'
     x = next(thread_iter)
+    assert x.root['type'] == 'enterBlockScope'
+    x = next(thread_iter)
     assert x.root['type'] == 'while'
 
-    # Check that false leads to a skip node
+    # Check that false leads to a skip node and then to a exitBlockScope
     false_node = thread[x.root['nextFalse']]
-    assert false_node.root['type'] == 'skip'
+    assert false_node.root['type'] == 'exitBlockScope'
 
     # Check that true leads to a number and then a skip back node
     true_node = thread[x.root['nextTrue']]
     assert true_node.root['type'] == 'number' and true_node.root['value'] == 1
+    true_node = thread[true_node.root['next']]
+    assert true_node.root['type'] == 'exitBlockScope'
     jump_back = thread[true_node.root['next']]
     assert jump_back.root['type'] == 'skip'
     assert jump_back.root['next'] == cond_start.root['id']
@@ -123,8 +127,12 @@ def test_until():
     thread_iter = thread2iter(thread)
     x = next(thread_iter)
     assert x.root['type'] == 'start'
-    code_start = next(thread_iter)
-    assert code_start.root['type'] == 'number' and code_start.root['value'] == 1
+    block_start = next(thread_iter)
+    assert block_start.root['type'] == 'enterBlockScope'
+    x = next(thread_iter)
+    assert x.root['type'] == 'number' and x.root['value'] == 1
+    x = next(thread_iter)
+    assert x.root['type'] == 'exitBlockScope'
     x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 3
     x = next(thread_iter)
@@ -135,7 +143,7 @@ def test_until():
     assert until_node.root['type'] == 'until'
 
     # On false it should go back to the first node
-    assert thread[until_node.root['nextFalse']] == code_start
+    assert thread[until_node.root['nextFalse']] == block_start
     
     # On true it should go to a skip node and on
     assert thread[until_node.root['nextTrue']].root['type'] == 'skip'

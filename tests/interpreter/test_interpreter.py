@@ -120,15 +120,34 @@ def test_var_scope():
     END
     """
     assert run(source) == 0
-    source = r"""BEGIN main
-        a <- 0
-        IF a = 0
-            b <- 3
-        END
-        main <- b
-    END"""
-    with pytest.raises(ExecutionError):
-        run(source)
+    sources = [
+        r"""BEGIN main
+            a <- 0
+            IF a = 0
+                b <- 3
+            END
+            main <- b
+        END""", 
+        r"""BEGIN main
+            a <- 1
+            WHILE a <> 0
+                b <- "Hello"
+                a <- 0
+            END
+            main <- b
+        END""",
+        r"""BEGIN main
+            UNTIL 0 = 0
+                b <- "Hello"
+            END
+            main <- b
+        END""" 
+    ]
+        
+    for source in sources:
+        with pytest.raises(ExecutionError):
+            run(source)
+    
 
 def test_while():
     source = r"""BEGIN main

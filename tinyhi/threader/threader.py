@@ -116,10 +116,13 @@ def thread_ast(ast):
         join_node = ASTNode({"type": "skip"})
         assign_identifier(join_node)
 
-        for stat in ast.root["onTrue"]:
-            dispatch(stat)
-        ast.root["nextTrue"] = ast.root["next"]
-        NODES[LAST].root["next"] = join_node.root["id"]
+        if len(ast.root["onTrue"]) == 0:
+            ast.root["nextTrue"] = join_node.root["id"]
+        else:
+            for stat in ast.root["onTrue"]:
+                dispatch(stat)
+            ast.root["nextTrue"] = ast.root["next"]
+            NODES[LAST].root["next"] = join_node.root["id"]
 
         if len(ast.root["onFalse"]) == 0:
             ast.root["nextFalse"] = join_node.root["id"]
@@ -129,6 +132,7 @@ def thread_ast(ast):
                 dispatch(stat)
             ast.root["nextFalse"] = ast.root["next"]
             NODES[LAST].root["next"] = join_node.root["id"]
+        LAST = join_node.root["id"]
         del ast.root["next"]
 
     def whileStat(ast):

@@ -120,6 +120,7 @@ def test_var_scope():
     END
     """
     assert run(source) == 0
+    # FIXME: Scope is not respected in IF/WHILE/UNTIL
     return
     source = r"""BEGIN main
         a <- 0
@@ -166,3 +167,15 @@ def test_until(capsys):
         main <- x
     END"""
     assert run(source) == 1
+
+def test_print(capsys):
+    source = r"""BEGIN main
+        "Hello, world!"
+        x <- 1
+        x
+        y <- 1 2 3
+        y
+    END"""
+    run(source)
+    stdout = capsys.readouterr().out
+    assert stdout == "Hello, world!\n1\n[1, 2, 3]\n"

@@ -11,7 +11,7 @@ stat: identifier '<-' expr? #assignStat
     | whilestat             #whileStat
     | untilstat             #untilStat
     | block                 #blockStat
-    | expr                  #exprStat
+    | expr                  #printStat
     ;
 
 block: BEGIN identifier formalparams? NEWLINE statements END; 

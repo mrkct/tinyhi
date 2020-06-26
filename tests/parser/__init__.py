@@ -29,3 +29,19 @@ def unaryop(op, expr):
         "type": "unaryExpr", 
         "op": op
     }, [expr])
+
+def printexpr(what):
+    """Utility to return an ASTNode with type 'print' for a value"""
+    if type(what) == int:
+        what = ASTNode({
+            'type': 'number', 
+            'value': what
+        }) 
+    elif type(what) == str:
+        what = ASTNode({
+            'type': 'string', 
+            'value': what
+        })
+    return ASTNode({
+        'type': 'print'
+    }, [what])

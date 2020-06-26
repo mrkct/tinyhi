@@ -1,6 +1,6 @@
 from tinyhi.parser.ast import ASTBuilderVisitor
 from tinyhi.parser import ASTNode, parse
-from tests.parser import binop, unaryop
+from tests.parser import binop, unaryop, printexpr
 
 def test_named_function_args():
     source = r"""BEGIN main(arg1, arg2, arg3)
@@ -61,7 +61,7 @@ def test_if_noelse():
     expected = ASTNode({
         "type": "if", 
         "cond": binop(ASTNode({"type": "variable", "value": "a"}), "=", 1), 
-        "onTrue": [ASTNode({"type": "number", "value": 1})], 
+        "onTrue": [printexpr(1)], 
         "onFalse": []
     })
 
@@ -75,8 +75,8 @@ def test_if_else():
     expected = ASTNode({
         "type": "if", 
         "cond": binop(ASTNode({"type": "variable", "value": "a"}), "<=", 2), 
-        "onTrue": [ASTNode({"type": "number", "value": 1})], 
-        "onFalse": [ASTNode({"type": "number", "value": 2})]
+        "onTrue": [printexpr(1)], 
+        "onFalse": [printexpr(2)]
     })
 
 def test_basic_expr():
@@ -173,7 +173,7 @@ def test_while():
     assert result == ASTNode({
         "type": "while", 
         "cond": binop(3, ">", 1), 
-        "onTrue": [ASTNode({"type": "number", "value": 1})]
+        "onTrue": [printexpr(1)]
     })
 
 def test_until():
@@ -184,5 +184,5 @@ def test_until():
     assert result == ASTNode({
         "type": "until", 
         "cond": binop(3, ">", 1), 
-        "onFalse": [ASTNode({"type": "number", "value": 1})]
+        "onFalse": [printexpr(1)]
     })

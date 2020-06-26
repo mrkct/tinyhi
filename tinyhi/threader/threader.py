@@ -191,6 +191,14 @@ def thread_ast(ast):
         NODES[LAST].root['next'] = ast.root['id']
         LAST = ast.root['id']
     
+    def printStat(ast):
+        nonlocal LAST
+
+        dispatch(ast.children[0])
+        assign_identifier(ast)
+        NODES[LAST].root["next"] = ast.root["id"]
+        LAST = ast.root["id"]
+
     def catchall(ast):
         nonlocal LAST
         assign_identifier(ast)
@@ -208,7 +216,8 @@ def thread_ast(ast):
             'while': whileStat, 
             'until': untilStat, 
             'assignment': assignment, 
-            'function': functionDeclaration
+            'function': functionDeclaration, 
+            'print': printStat
         }
         if ast.root["type"] in FUNCTION_TABLE:
             FUNCTION_TABLE[ast.root["type"]](ast)

@@ -208,6 +208,10 @@ class ASTBuilderVisitor(TinyHiVisitor):
         function_call = remove_whitespace(_childrenToList(ctx))[0]
         return self.visit(function_call)
     
+    def visitPrintStat(self, ctx):
+        return ASTNode({
+            'type': 'print'
+        }, [self.visitChildren(ctx)])
 
     def visitActualparams(self, ctx):
         # This is a list of expr with commas in between enclosed in parenthesis

@@ -17,6 +17,8 @@ def strtype(x):
         return 'STRING'
     elif type(x) == list:
         return 'LIST'
+    elif type(x) == None:
+        return 'Void'
     else:
         return f'<INVALID: {x.__class__.__name__}>'
 
@@ -52,8 +54,8 @@ def run_from_thread(thread, functions, start):
         st = st_stack.pop()
         func_name = fname = node.root["functionName"]
         x = st.get(func_name)
-        if x != None:
-            stack.append(x)
+        # We append even if its None. It will get thrown away in any case
+        stack.append(x)
         return ret_stack.pop()
 
     def handle_const(node):
@@ -248,6 +250,18 @@ def run_from_thread(thread, functions, start):
             raise ExecutionError(f'IF: stack.pop returned a non-bool value ({cond})')
         return node.root["nextTrue"] if cond else node.root["nextFalse"]
 
+    def handle_print(node):
+        value = stack.pop()
+        if value == None: 
+            return node.root["next"]
+        if type(value) not in [int, str, list]:
+            raise ExecutionError(
+                f'PRINT: Invalid value on the stack {value} ({type(value)})'
+            )
+        print(value)
+        return node.root["next"]
+
+
     NODE_FUNCTIONS = {
         'skip': handle_skip, 
         'function': handle_function, 
@@ -259,6 +273,7 @@ def run_from_thread(thread, functions, start):
         'assignment': handle_assignment, 
         'functionCall': handle_functionCall,
         'return': handle_return, 
+        'print': handle_print, 
         'if': handle_conditional_jump, 
         'while': handle_conditional_jump, 
         'until': handle_conditional_jump
@@ -267,9 +282,7 @@ def run_from_thread(thread, functions, start):
     while True:
         # End the program
         if IP == -1:
-            if len(stack) > 0:
-                return stack.pop()
-            return None
+            return stack.pop()
         node = thread[IP]
         if node.root['type'] in NODE_FUNCTIONS:
             IP = NODE_FUNCTIONS[node.root['type']](node)

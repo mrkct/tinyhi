@@ -65,7 +65,7 @@ def run_from_thread(thread, functions, start):
         var_name = node.root['value']
         value = symbol_table.get(var_name)
         if value == None:
-            raise ExecutionError('Name "{var_name}" is not defined')
+            raise ExecutionError(f'Name "{var_name}" is not defined')
         stack.append(value)
         return node.root['next']
     
@@ -105,7 +105,7 @@ def run_from_thread(thread, functions, start):
         def handle_sub(left, right):
             # Simple sub of integers
             if type(left) == int and type(right) == int:
-                return left + right
+                return left - right
             # Int - List is different than List - Int
             if type(left) == list and type(right) == int:
                 return [x - right for x in left]
@@ -242,6 +242,11 @@ def run_from_thread(thread, functions, start):
         stack.append(OPERATIONS[op](expr))
         return node.root['next']
 
+    def handle_if(node):
+        cond = stack.pop()
+        if type(cond) != bool:
+            raise ExecutionError(f'IF: stack.pop returned a non-bool value ({cond})')
+        return node.root["nextTrue"] if cond else node.root["nextFalse"]
 
 
     NODE_FUNCTIONS = {
@@ -254,7 +259,8 @@ def run_from_thread(thread, functions, start):
         'unaryExpr': handle_unaryExpr, 
         'assignment': handle_assignment, 
         'functionCall': handle_functionCall,
-        'return': handle_return
+        'return': handle_return, 
+        'if': handle_if
     }
 
     while True:
@@ -286,4 +292,5 @@ def run(source, throw_errors=False):
     """
     ast = parse(source, throw_errors=True)
     thread, functions = thread_ast(ast)
+
     return run_from_thread(thread, functions, ast.root['name'])

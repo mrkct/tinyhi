@@ -70,15 +70,41 @@ def test_functions():
     END"""
     assert run(source) == 1
 
-def test_var_scope():
+def test_param_immutability():
     source = r"""BEGIN main
-        a <- 0
-        BEGIN func()
-            a <- 1
+        BEGIN MyFn(a)
+            a <- 77
         END
-        func()
-        main <- a
-    END
-    """
-    assert run(source) == 0
+        MyFn(7)
+    END"""
+    with pytest.raises(ExecutionError):
+        run(source)
 
+def test_deep_recursion():
+    source = r"""BEGIN main
+        BEGIN fib(x)
+            IF x = 0
+                fib <- 0
+            ELSE
+                IF x = 1
+                    fib <- 1
+                ELSE
+                    fib <- fib(x - 1) + fib(x - 2)
+                END
+            END
+        END
+        main <- fib(10)
+    END"""
+    assert run(source) == 55
+
+def test_if():
+    source = r"""BEGIN main
+        a <- 1
+        IF a = 0
+            a <- 3
+        ELSE
+            a <- 7
+        END
+        main <- a
+    END"""
+    assert run(source) == 7

@@ -227,3 +227,14 @@ def test_clear_var():
     END"""
     with pytest.raises(ExecutionError):
         run(source)
+
+def test_array_indexing(capsys):
+    source = r"""BEGIN main
+        X <- "ABCD"
+        X[1 4]
+        X <- 1 2 3 4
+        X[2]
+    END"""
+    run(source)
+    stdout = capsys.readouterr().out
+    assert stdout == 'AD\n2\n'

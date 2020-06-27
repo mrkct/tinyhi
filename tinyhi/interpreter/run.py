@@ -81,6 +81,7 @@ def run_from_thread(thread, functions, start, print_dbg=False):
         return node.root['next']
     
     def handle_binaryExpr(node):
+        # TODO: Allow mixing strings and ints in vectors
         def handle_sum(left, right):
             # Simple sum of integers
             if type(left) == int and type(right) == int:
@@ -255,6 +256,37 @@ def run_from_thread(thread, functions, start, print_dbg=False):
         stack.append(OPERATIONS[op](expr))
         return node.root['next']
 
+    def handle_array_indexing(node):
+        index = stack.pop()
+        array = stack.pop()
+        if type(array) not in [list, str]:
+            raise ExecutionError(
+                f'Type mismatch: cannot index {strtype(array)}'
+            )
+        if type(index) != list: index = [index]
+        # TODO: This supports str arrays too, but currently we don't allow them
+        values = []
+        for i in index:
+            if type(i) != int:
+                raise ExecutionError(
+                    f'Type mismatch: cannot use {strtype(i)} as an index'
+                )
+            if i < 1 or i > len(array):
+                raise ExecutionError(
+                    f'Index out of bounds: {i} is not in [1, {len(array)}]'
+                )
+            values.append(array[i - 1])
+        # Here we merge adjacents lists
+        for i in range(len(values) - 1, 0, -1):
+            if type(values[i]) == str and type(values[i-1]) == str:
+                values[i-1] += values[i]
+                del values[i]
+        if len(values) == 1:
+            stack.append(values[0])
+        else:
+            stack.append(values)
+        return node.root['next']
+
     def handle_conditional_jump(node):
         cond = stack.pop()
         if type(cond) != bool:
@@ -290,6 +322,7 @@ def run_from_thread(thread, functions, start, print_dbg=False):
         'variable': handle_variable, 
         'binaryExpr': handle_binaryExpr, 
         'unaryExpr': handle_unaryExpr, 
+        'arrayIndexing': handle_array_indexing, 
         'assignment': handle_assignment, 
         'functionCall': handle_functionCall,
         'return': handle_return, 

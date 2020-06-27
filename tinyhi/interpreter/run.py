@@ -21,19 +21,24 @@ def strtype(x):
 
 def run_from_thread(thread, functions, start):
     IP = functions[start]
-    st_stack = []       # SymbolTable stack
-    ret_stack = [-1]    # Contains the return IP address for functions
-    stack = []          # Contains the actual values for the computations
+    
+    # The top of this stack contains the symbol table that represents the 
+    # current scope
+    symboltable_stack = []
+    return_stack = [-1]     # Contains the return IP for each function call
+    stack = []              # Contains the actual values for the computations
 
+    # A special SymbolTable dedicated to globals
     globals_table = SymbolTable()
 
     def handle_skip(node):
+        """Handles those nodes that do nothing and are only used to join 
+        branches in the thread"""
         return node.root['next']
     
     def handle_function(node):
-        # This is called when we enter a function call
-        # We are in a function therefore we don't care about the scope 
-        # of who called us
+        """Handles the node that represents when we enter a called function"""
+        # In a function we don't care about the scope of who called us
         table = SymbolTable()
         # FIXME: Disallow using the function name as a param
         for param in reversed(node.root['params']):
@@ -43,34 +48,41 @@ def run_from_thread(thread, functions, start):
         # end up in a SymbolTable that would be thrown away at the end 
         # of that scope
         table.put(node.root['name'], Undefined)
-        st_stack.append(table)
+        symboltable_stack.append(table)
         
         return node.root['next']
 
-    def handle_functionCall(node):
+    def handle_function_call(node):
+        """Handles a function call node, checks if the scope is right and 
+        manages how to return after the call ends"""
         # Care, we need to save the IP just after this node or we would run 
         # this node again after we return from a function
         function_name = node.root["functionName"]
-        table = st_stack[-1]
+        table = symboltable_stack[-1]
         if not table.isFunctionInScope(function_name):
             raise ExecutionError(
                 f'Function "{function_name}" is not in scope'
             )
-        ret_stack.append(node.root["next"])
+        return_stack.append(node.root["next"])
         return functions[node.root["functionName"]]
     
     def handle_return(node):
+        """Handles the end of a function call, returning to the point before 
+        the call and handling the return value of the function"""
         # We throw away the symbol table for the function
         # but we also need to check if a return value was set. 
-        st = st_stack.pop()
+        st = symboltable_stack.pop()
         func_name = node.root["functionName"]
         x = st.get(func_name)
         # We append even if its None. If it's a useless value it will 
         # be thrown away in the print node
+        # ATTENTION: DO NOT CHANGE THIS TO 'if x'. If the function returns a 0
+        # then it would evaluate to false and return Undefined instead
         stack.append(x if x != None else Undefined)
-        return ret_stack.pop()
+        return return_stack.pop()
 
     def handle_const(node):
+        """Pushes a generic constant to the stack. Used for ints and strings"""
         stack.append(node.root['value'])
         return node.root['next']
 
@@ -79,14 +91,14 @@ def run_from_thread(thread, functions, start):
         if var_name[0] == '.':
             value = globals_table.get(var_name)
         else:
-            symbol_table = st_stack[-1]
+            symbol_table = symboltable_stack[-1]
             value = symbol_table.get(var_name)
         if value == None:
             raise ExecutionError(f'Name "{var_name}" is not defined')
         stack.append(value)
         return node.root['next']
     
-    def handle_binaryExpr(node):
+    def handle_binary_expr(node):
         # TODO: Allow mixing strings and ints in vectors
         def handle_sum(left, right):
             # Simple sum of integers
@@ -185,17 +197,17 @@ def run_from_thread(thread, functions, start):
                 f'Type mismatch: cannot compare {strtype(left)} and {strtype(right)}'
             )
         
-        def handle_notEqual(left, right):
+        def handle_not_equal(left, right):
             if type(left) == type(right):
                 return left != right
             raise ExecutionError(
                 f'Type mismatch: cannot compare {strtype(left)} and {strtype(right)}'
             )
         
-        def handle_greaterEqual(left, right):
+        def handle_greater_equal(left, right):
             return not handle_less(left, right)
         
-        def handle_lessEqual(left, right):
+        def handle_less_equal(left, right):
             return not handle_greater(left, right)
         
 
@@ -207,10 +219,10 @@ def run_from_thread(thread, functions, start):
             ' ': handle_blank, 
             '>': handle_greater,
             '<': handle_less,
-            '>=': handle_greaterEqual,
-            '<=': handle_lessEqual,
+            '>=': handle_greater_equal,
+            '<=': handle_less_equal,
             '=': handle_equal,
-            '<>': handle_notEqual
+            '<>': handle_not_equal
         }
         right, left = stack.pop(), stack.pop()
         op = node.root['op']
@@ -218,7 +230,7 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
 
     def handle_assignment(node):
-        table = st_stack[-1]
+        table = symboltable_stack[-1]
         # If it's a global variable we use another table
         var_name = node.root['variable']
         if var_name[0] == '.':
@@ -230,7 +242,7 @@ def run_from_thread(thread, functions, start):
             table.put(var_name, stack.pop())
         return node.root['next']
     
-    def handle_unaryExpr(node):
+    def handle_unary_expr(node):
         def handle_len(expr):
             if type(expr) in [list, str]:
                 return len(expr)
@@ -314,17 +326,24 @@ def run_from_thread(thread, functions, start):
         return node.root["next"]
 
     def handle_enter_block_scope(node):
-        st_stack.append(
-            SymbolTable(parent=st_stack[-1])
+        """Handles a special node added before entering a block scope 
+        (IF, WHILE, UNTIL). These scopes inherit all declaration from their 
+        parent's scope"""
+        symboltable_stack.append(
+            SymbolTable(parent=symboltable_stack[-1])
         )
         return node.root["next"]
     
     def handle_exit_block_scope(node):
-        st_stack.pop()
+        """Handles a special node added before exiting a block scope"""
+        symboltable_stack.pop()
         return node.root["next"]
 
     def handle_set_in_scope_functions(node):
-        table = st_stack[-1]
+        """Handles a special node which contains all the functions' names 
+        declared in a particular scope. This sets those functions as 'in scope' 
+        for the scope we're currently in"""
+        table = symboltable_stack[-1]
         table.setInScopeFunctions(node.root['functions'])
         return node.root['next']
 
@@ -334,11 +353,11 @@ def run_from_thread(thread, functions, start):
         'number': handle_const, 
         'string': handle_const, 
         'variable': handle_variable, 
-        'binaryExpr': handle_binaryExpr, 
-        'unaryExpr': handle_unaryExpr, 
+        'binaryExpr': handle_binary_expr, 
+        'unaryExpr': handle_unary_expr, 
         'arrayIndexing': handle_array_indexing, 
         'assignment': handle_assignment, 
-        'functionCall': handle_functionCall,
+        'functionCall': handle_function_call,
         'return': handle_return, 
         'print': handle_print, 
         'if': handle_conditional_jump, 
@@ -352,11 +371,7 @@ def run_from_thread(thread, functions, start):
     while True:
         # End the program
         if IP == -1:
-            return_value = stack.pop()
-            if return_value == Undefined:
-                return None
-            else:
-                return return_value
+            return stack.pop()
         node = thread[IP]
         if node.root['type'] in NODE_FUNCTIONS:
             IP = NODE_FUNCTIONS[node.root['type']](node)

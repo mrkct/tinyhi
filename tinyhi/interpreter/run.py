@@ -25,6 +25,8 @@ def run_from_thread(thread, functions, start, print_dbg=False):
     ret_stack = [-1]    # Contains the return IP address for functions
     stack = []          # Contains the actual values for the computations
 
+    globals_table = SymbolTable()
+
     def handle_skip(node):
         return node.root['next']
     
@@ -67,9 +69,12 @@ def run_from_thread(thread, functions, start, print_dbg=False):
         return node.root['next']
 
     def handle_variable(node):
-        symbol_table = st_stack[-1]
         var_name = node.root['value']
-        value = symbol_table.get(var_name)
+        if var_name[0] == '.':
+            value = globals_table.get(var_name)
+        else:
+            symbol_table = st_stack[-1]
+            value = symbol_table.get(var_name)
         if value == None:
             raise ExecutionError(f'Name "{var_name}" is not defined')
         stack.append(value)
@@ -206,14 +211,16 @@ def run_from_thread(thread, functions, start, print_dbg=False):
         return node.root['next']
 
     def handle_assignment(node):
+        table = st_stack[-1]
+        # If it's a global variable we use another table
+        var_name = node.root['variable']
+        if var_name[0] == '.':
+            table = globals_table
         # If it is an assignment to clear the variable
         if len(node.children) == 0:
-            # TODO: Clear the value in the symbol table
-            pass
+            table.put(var_name, Undefined)
         else:
-            v = stack.pop()
-            st = st_stack[-1]
-            st.put(node.root['variable'], v)
+            table.put(var_name, stack.pop())
         return node.root['next']
     
     def handle_unaryExpr(node):

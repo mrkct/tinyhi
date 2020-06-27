@@ -196,3 +196,34 @@ def test_print(capsys):
     run(source)
     stdout = capsys.readouterr().out
     assert stdout == "Hello, world!\n1\n[1, 2, 3]\n"
+
+def test_globals():
+    source = r"""BEGIN main
+        .A <- 0
+        BEGIN func
+            .A <- 1
+        END
+        func()
+        main <- .A
+    END"""
+    assert run(source) == 1
+    source = r"""BEGIN main
+        i <- 0
+        WHILE i = 0
+            .GLOBAL <- 1
+            i <- 1
+        END
+        main <- .GLOBAL
+    END"""
+    assert run(source) == 1
+
+def test_clear_var():
+    source = r"""BEGIN main
+        a <- 0
+        b <- 1
+        a + b
+        b <-
+        a + b
+    END"""
+    with pytest.raises(ExecutionError):
+        run(source)

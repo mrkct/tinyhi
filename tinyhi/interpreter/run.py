@@ -19,7 +19,7 @@ def strtype(x):
     else:
         return f'<INVALID: {x.__class__.__name__}>'
 
-def run_from_thread(thread, functions, start, print_dbg=False):
+def run_from_thread(thread, functions, start):
     IP = functions[start]
     st_stack = []       # SymbolTable stack
     ret_stack = [-1]    # Contains the return IP address for functions
@@ -50,6 +50,12 @@ def run_from_thread(thread, functions, start, print_dbg=False):
     def handle_functionCall(node):
         # Care, we need to save the IP just after this node or we would run 
         # this node again after we return from a function
+        function_name = node.root["functionName"]
+        table = st_stack[-1]
+        if not table.isFunctionInScope(function_name):
+            raise ExecutionError(
+                f'Function "{function_name}" is not in scope'
+            )
         ret_stack.append(node.root["next"])
         return functions[node.root["functionName"]]
     
@@ -290,7 +296,10 @@ def run_from_thread(thread, functions, start, print_dbg=False):
     def handle_conditional_jump(node):
         cond = stack.pop()
         if type(cond) != bool:
-            raise ExecutionError(f'IF: stack.pop returned a non-bool value ({cond})')
+            raise ExecutionError(
+                f'stack.pop returned a non-bool value ({cond}) in a jump'
+            )
+        
         return node.root["nextTrue"] if cond else node.root["nextFalse"]
 
     def handle_print(node):
@@ -314,6 +323,11 @@ def run_from_thread(thread, functions, start, print_dbg=False):
         st_stack.pop()
         return node.root["next"]
 
+    def handle_set_in_scope_functions(node):
+        table = st_stack[-1]
+        table.setInScopeFunctions(node.root['functions'])
+        return node.root['next']
+
     NODE_FUNCTIONS = {
         'skip': handle_skip, 
         'function': handle_function, 
@@ -331,7 +345,8 @@ def run_from_thread(thread, functions, start, print_dbg=False):
         'while': handle_conditional_jump, 
         'until': handle_conditional_jump, 
         'enterBlockScope': handle_enter_block_scope, 
-        'exitBlockScope': handle_exit_block_scope
+        'exitBlockScope': handle_exit_block_scope, 
+        'setInScopeFunctions': handle_set_in_scope_functions
     }
 
     while True:

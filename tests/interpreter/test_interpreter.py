@@ -238,3 +238,54 @@ def test_array_indexing(capsys):
     run(source)
     stdout = capsys.readouterr().out
     assert stdout == 'AD\n2\n'
+
+def test_function_scope():
+    source = r"""BEGIN main
+        BEGIN func()
+            BEGIN recurse(x)
+                IF x <> 0
+                    recurse(0)
+                END
+            END
+            recurse(1)
+        END
+        func()
+    END"""
+    run(source)
+    bad_scopes = [
+        r"""BEGIN main
+            BEGIN func()
+                BEGIN recurse(x)
+                    IF x <> 0
+                        recurse(0)
+                    END
+                END
+            END
+            recurse(1)
+        END""", 
+        r"""BEGIN main
+            IF 1 = 1
+                BEGIN x
+                END
+            END
+            x()
+        END""", 
+        r"""BEGIN main
+            WHILE 0 = 1
+                BEGIN x
+                END
+            END
+            x()
+        END""",
+        r"""BEGIN main
+            UNTIL 1 = 1
+                BEGIN x
+                END
+            END
+            x()
+        END""",
+
+    ]
+    with pytest.raises(ExecutionError):
+        for s in bad_scopes:
+            run(s)

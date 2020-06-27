@@ -12,7 +12,7 @@ class SymbolTable:
         """
         self.parent = parent
         self.variables = {}
-        self.functions = {}
+        self.inScopeFunctions = set()
     
     def get(self, variable):
         """Returns the value of a variable given its name
@@ -47,6 +47,22 @@ class SymbolTable:
             }
         else:
             self.parent.put(name, value)
+    
+    def setInScopeFunctions(self, functions):
+        """Sets what functions are in scope at the current moment
+        Params:
+            functions: An iterable of strings representing the function 
+            names of the functions in scope"""
+        self.inScopeFunctions.update(functions)
+
+    def isFunctionInScope(self, function_name):
+        """Returns whether the function is in scope. 
+        A function is in scope if it was previously added to the symbol 
+        table with `setInScopeFunctions`
+        
+        Returns:
+            `True` if the function is in scope, `False` otherwise"""
+        return function_name in self.inScopeFunctions
     
     def __repr__(self):
         keyvals = ', '.join([f'{k}: {v}' for k, v in self.variables.items()])

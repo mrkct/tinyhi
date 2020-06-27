@@ -30,9 +30,33 @@ def thread_ast(ast):
     NODES = {
         0: ASTNode({'type': 'start', 'id': 0})
     }
-
     FUNCTIONS = {}
-    def functionDeclaration(ast):
+
+    def append_node(node, key='next'):
+        """Appends a node to the current last node visited by setting 
+        a key in the last node's root to the node's id. If the node 
+        doesn't have an id it will be assigned to it. This will move the 
+        current last node to the newly attached one
+
+        Params:
+            node: The ASTNode that will be appended to the current last node
+            key: The key to use in the last node's root to append the node
+        """
+        nonlocal LAST
+        if 'id' not in node.root:
+            assign_identifier(node)
+        NODES[LAST].root[key] = node.root["id"]
+        LAST = node.root["id"]
+
+    def assign_identifier(ast):
+        '''Registers the AST in the NODES dict and gives it a numeric id
+        in the 'id' field in the root'''
+        nonlocal NEXT_IDENTIFIER
+        ast.root["id"] = NEXT_IDENTIFIER
+        NODES[ast.root["id"]] = ast
+        NEXT_IDENTIFIER += 1
+
+    def function_declaration(ast):
         nonlocal LAST
         if ast.root['name'] in FUNCTIONS:
             # TODO: Maybe change with a custom exception?
@@ -45,8 +69,10 @@ def thread_ast(ast):
         assign_identifier(ast)
         LAST = ast.root["id"]
         FUNCTIONS[ast.root["name"]] = ast.root["id"]
+
         for stat in ast.children:
             dispatch(stat)
+
         return_node = ASTNode({
             'type': 'return', 
             # This is useful for when we run the program
@@ -57,67 +83,44 @@ def thread_ast(ast):
         
         LAST = saved_last
 
-    def assign_identifier(ast):
-        '''Registers the AST in the NODES dict and gives it a numeric id
-        in the 'id' field in the root'''
-        nonlocal NEXT_IDENTIFIER
-        ast.root["id"] = NEXT_IDENTIFIER
-        NODES[ast.root["id"]] = ast
-        NEXT_IDENTIFIER += 1
-
-    def binaryExpr(ast):
+    def binary_expr(ast):
         nonlocal LAST
-        op = ast.root["op"]
         left, right = ast.children
         dispatch(left)
         dispatch(right)
         
-        assign_identifier(ast)
-        NODES[LAST].root["next"] = ast.root["id"]
-        LAST = ast.root["id"]
+        append_node(ast)
     
-    def unaryExpr(ast):
+    def unary_expr(ast):
         nonlocal LAST
         op = ast.root["op"]
         operand = ast.children[0]
         dispatch(operand)
         
-        assign_identifier(ast)
-        NODES[LAST].root["next"] = ast.root["id"]
-        LAST = ast.root["id"]
+        append_node(ast)
     
-    def arrayIndexing(ast):
+    def array_indexing(ast):
         nonlocal LAST
         left, index = ast.children
         dispatch(left)
         dispatch(index)
         
-        assign_identifier(ast)
-        NODES[LAST].root["next"] = ast.root["id"]
-        LAST = ast.root["id"]
+        append_node(ast)
 
-    def functionCall(ast):
+    def function_call(ast):
         nonlocal LAST
         params = ast.children
         for p in params:
             dispatch(p)
-        assign_identifier(ast)
-        NODES[LAST].root["next"] = ast.root["id"]
-        LAST = ast.root["id"]
+        append_node(ast)
 
-    def ifStat(ast):
+    def if_stat(ast):
         nonlocal LAST
         dispatch(ast.root["cond"])
 
-        enter_block_scope = ASTNode({"type": "enterBlockScope"})
-        assign_identifier(enter_block_scope)
-        NODES[LAST].root["next"] = enter_block_scope.root["id"]
-        LAST = enter_block_scope.root["id"]
-
-        assign_identifier(ast)
-        NODES[LAST].root["next"] = ast.root["id"]
-        LAST = ast.root["id"]
-
+        append_node(ASTNode({"type": "enterBlockScope"}))
+        append_node(ast)
+        
         exit_block_scope = ASTNode({"type": "exitBlockScope"})
         assign_identifier(exit_block_scope)
 
@@ -141,21 +144,15 @@ def thread_ast(ast):
 
         del ast.root["next"]
 
-    def whileStat(ast):
+    def while_stat(ast):
         nonlocal LAST
 
         node_before_condition = NODES[LAST]
         dispatch(ast.root['cond'])
         start_of_cond_node_id = node_before_condition.root['next']
 
-        enter_block_scope = ASTNode({'type': 'enterBlockScope'})
-        assign_identifier(enter_block_scope)
-        NODES[LAST].root['next'] = enter_block_scope.root['id']
-        LAST = enter_block_scope.root['id']
-
-        assign_identifier(ast)
-        NODES[LAST].root['next'] = ast.root['id']
-        LAST = ast.root['id']
+        append_node(ASTNode({'type': 'enterBlockScope'}))
+        append_node(ast)
 
         # The 'cond == True' case
         for stat in ast.root['onTrue']: 
@@ -163,10 +160,7 @@ def thread_ast(ast):
         ast.root['nextTrue'] = ast.root['next']
         del ast.root['next']
 
-        exit_block_scope = ASTNode({'type': 'exitBlockScope'})
-        assign_identifier(exit_block_scope)
-        NODES[LAST].root['next'] = exit_block_scope.root['id']
-        LAST = exit_block_scope.root['id']
+        append_node(ASTNode({'type': 'exitBlockScope'}))
 
         go_back_node = ASTNode({
             'type': 'skip', 
@@ -184,26 +178,17 @@ def thread_ast(ast):
         ast.root['nextFalse'] = exit_block_scope.root['id']
         LAST = exit_block_scope.root['id']
 
-    def untilStat(ast):
+    def until_stat(ast):
         nonlocal LAST
 
         enter_block_scope = ASTNode({'type': 'enterBlockScope'})
-        assign_identifier(enter_block_scope)
-        NODES[LAST].root['next'] = enter_block_scope.root['id']
-        LAST = enter_block_scope.root['id']
-        
+        append_node(enter_block_scope)
         for stat in ast.root['onFalse']:
             dispatch(stat)
-        
-        exit_block_scope = ASTNode({'type': 'exitBlockScope'})
-        assign_identifier(exit_block_scope)
-        NODES[LAST].root['next'] = exit_block_scope.root['id']
-        LAST = exit_block_scope.root['id']
+        append_node(ASTNode({'type': 'exitBlockScope'}))
 
         dispatch(ast.root['cond'])
-        assign_identifier(ast)
-        NODES[LAST].root['next'] = ast.root['id']
-        LAST = ast.root['id']
+        append_node(ast)
 
         join_node = ASTNode({'type': 'skip'})
         assign_identifier(join_node)
@@ -217,37 +202,34 @@ def thread_ast(ast):
         if len(ast.children) > 0:
             value = ast.children[0]
             dispatch(value)
-        assign_identifier(ast)
-        NODES[LAST].root['next'] = ast.root['id']
-        LAST = ast.root['id']
+        append_node(ast)
     
-    def printStat(ast):
+    def print_stat(ast):
         nonlocal LAST
 
         dispatch(ast.children[0])
-        assign_identifier(ast)
-        NODES[LAST].root["next"] = ast.root["id"]
-        LAST = ast.root["id"]
+        append_node(ast)
 
     def catchall(ast):
-        nonlocal LAST
-        assign_identifier(ast)
-        
-        NODES[LAST].root["next"] = ast.root["id"]
-        LAST = ast.root["id"]
+        print('WARN:', ast.root['type'])
+        append_node(ast)
 
     def dispatch(ast):
         FUNCTION_TABLE = {
-            'binaryExpr': binaryExpr,
-            'unaryExpr': unaryExpr,
-            'arrayIndexing': arrayIndexing, 
-            'functionCall': functionCall, 
-            'if': ifStat, 
-            'while': whileStat, 
-            'until': untilStat, 
+            'binaryExpr': binary_expr,
+            'unaryExpr': unary_expr,
+            'arrayIndexing': array_indexing, 
+            'functionCall': function_call, 
+            'if': if_stat, 
+            'while': while_stat, 
+            'until': until_stat, 
             'assignment': assignment, 
-            'function': functionDeclaration, 
-            'print': printStat
+            'function': function_declaration, 
+            'print': print_stat, 
+
+            'variable': append_node, 
+            'number': append_node, 
+            'string': append_node
         }
         if ast.root["type"] in FUNCTION_TABLE:
             FUNCTION_TABLE[ast.root["type"]](ast)

@@ -21,6 +21,8 @@ def binary_expression(left, op, right):
         if type(left) == int and type(right) == int:
             return left + right
         # Sum of list and a single int
+        # Note that lists of string are impossible to get in TinyHi so we 
+        # don't check for those
         if type(left) == list and type(right) == int:
             left, right = right, left
         if type(left) == int and type(right) == list:
@@ -31,9 +33,6 @@ def binary_expression(left, op, right):
                     f'Type mismatch: cannot sum lists with different lengths'
                 )
             return [left[i] + right[i] for i in range(0, len(left))]
-        raise ExecutionError(
-            f'Type mismatch: cannot sum {strtype(left)} and {strtype(right)}'
-        )
 
     def handle_mul(left, right):
         # Simple mul of integers
@@ -187,3 +186,38 @@ def unary_expression(op, value):
             'Operation "{op}" is not a valid unary operation'
         )
     return OPERATIONS[op](value)
+
+def array_index(array, index):
+    """Returns the value indexed in an array or string
+    Params:
+        array: A list or string representing the value to index into
+        index: An int or list of int each representing indexes. Note that 
+        indexes start from 1 in TinyHi
+    Returns:
+        A string if `array` was a string, a list of ints of the index was also 
+        a list or a single integer if there was a single index in an int list
+    Raises:
+        ExecutionError on type mismatches
+    """
+    if type(array) not in [list, str]:
+        raise ExecutionError(
+            f'Type mismatch: cannot index {strtype(array)}'
+        )
+    if type(index) not in [list, int]:
+        raise ExecutionError(
+            f'Type mismatch: cannot use {strtype(index)} as an index'
+        )
+    if type(index) == int: index = [index]
+
+    result = []
+    for i in index:
+        if i < 1 or i > len(array):
+            raise ExecutionError(
+                f'Index out of bounds: {i} is not in [1, {len(array)}]'
+            )
+        result.append(array[i - 1])
+    if type(array) == str:
+        result = ''.join(result)
+    elif len(result) == 1:
+        result = result[0]
+    return result

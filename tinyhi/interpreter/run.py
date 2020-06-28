@@ -3,7 +3,7 @@ from .errors import ExecutionError, strtype
 from .undefined import Undefined
 from tinyhi.parser import parse
 from tinyhi.threader import thread_ast
-from .expressions import binary_expression, unary_expression
+from .expressions import binary_expression, unary_expression, array_index
 
 
 def run_from_thread(thread, functions, start):
@@ -115,32 +115,8 @@ def run_from_thread(thread, functions, start):
     def handle_array_indexing(node):
         index = stack.pop()
         array = stack.pop()
-        if type(array) not in [list, str]:
-            raise ExecutionError(
-                f'Type mismatch: cannot index {strtype(array)}'
-            )
-        if type(index) != list: index = [index]
-        # TODO: This supports str arrays too, but currently we don't allow them
-        values = []
-        for i in index:
-            if type(i) != int:
-                raise ExecutionError(
-                    f'Type mismatch: cannot use {strtype(i)} as an index'
-                )
-            if i < 1 or i > len(array):
-                raise ExecutionError(
-                    f'Index out of bounds: {i} is not in [1, {len(array)}]'
-                )
-            values.append(array[i - 1])
-        # Here we merge adjacents lists
-        for i in range(len(values) - 1, 0, -1):
-            if type(values[i]) == str and type(values[i-1]) == str:
-                values[i-1] += values[i]
-                del values[i]
-        if len(values) == 1:
-            stack.append(values[0])
-        else:
-            stack.append(values)
+        result = array_index(array, index)
+        stack.append(result)
         return node.root['next']
 
     def handle_conditional_jump(node):

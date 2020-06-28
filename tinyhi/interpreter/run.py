@@ -1,23 +1,10 @@
 from .symboltable import SymbolTable
-from .errors import ExecutionError
+from .errors import ExecutionError, strtype
 from .undefined import Undefined
 from tinyhi.parser import parse
 from tinyhi.threader import thread_ast
+from .expressions import binary_expression, unary_expression
 
-
-def strtype(x):
-    """Returns a string representation of the type of the value
-    """
-    if type(x) == int:
-        return 'INTEGER'
-    elif type(x) == str:
-        return 'STRING'
-    elif type(x) == list:
-        return 'LIST'
-    elif x == Undefined:
-        return 'UNDEFINED'
-    else:
-        return f'<INVALID: {x.__class__.__name__}>'
 
 def run_from_thread(thread, functions, start):
     IP = functions[start]
@@ -99,134 +86,10 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
     
     def handle_binary_expr(node):
-        # TODO: Allow mixing strings and ints in vectors
-        def handle_sum(left, right):
-            # Simple sum of integers
-            if type(left) == int and type(right) == int:
-                return left + right
-            # Sum of list and a single int
-            if type(left) == list and type(right) == int:
-                left, right = right, left
-            if type(left) == int and type(right) == list:
-                return [left + x for x in right]
-            if type(left) == list and type(right) == list:
-                if len(left) != len(right):
-                    raise ExecutionError(
-                        f'Type mismatch: cannot sum lists with different lengths'
-                    )
-                return [left[i] + right[i] for i in range(0, len(left))]
-            raise ExecutionError(
-                f'Type mismatch: cannot sum {strtype(left)} and {strtype(right)}'
-            )
-
-        def handle_mul(left, right):
-            # Simple mul of integers
-            if type(left) == int and type(right) == int:
-                return left * right
-            # Sum of list and a single int
-            if type(left) == list and type(right) == int:
-                left, right = right, left
-            if type(left) == int and type(right) == list:
-                return [left * x for x in right]
-            raise ExecutionError(
-                f'Type mismatch: cannot multiply {strtype(left)} and {strtype(right)}'
-            )
-
-        def handle_sub(left, right):
-            # Simple sub of integers
-            if type(left) == int and type(right) == int:
-                return left - right
-            # Int - List is different than List - Int
-            if type(left) == list and type(right) == int:
-                return [x - right for x in left]
-            if type(left) == int and type(right) == list:
-                return [left - x for x in right]
-            raise ExecutionError(
-                f'Type mismatch: cannot subtract {strtype(left)} and {strtype(right)}'
-            )
-
-        def handle_div(left, right):
-            try:
-                # Simple divison of integers
-                if type(left) == int and type(right) == int:
-                    return left // right
-                # Int - List is different than List - Int
-                if type(left) == list and type(right) == int:
-                    return [x // right for x in left]
-                if type(left) == int and type(right) == list:
-                    return [left // x for x in right]
-                raise ExecutionError(
-                    f'Type mismatch: cannot divide {strtype(left)} and {strtype(right)}'
-                )
-            except ZeroDivisionError:
-                raise ExecutionError(
-                    f'Division by zero: {left} / {right}'
-                )
-
-        def handle_blank(left, right):
-            if type(left) == str and type(right) == str:
-                return left + right
-            if type(left) == str or type(right) == str:
-                raise ExecutionError(
-                    f'Type mismatch: vectors can only contain integers'
-                )
-            if type(left) != list:
-                left = [left]
-            if type(right) != list:
-                right = [right]
-            return left + right
-
-        def handle_greater(left, right):
-            if type(left) == int and type(right) == int:
-                return left > right
-            raise ExecutionError(
-                f'Type mismatch: cannot compare {strtype(left)} and {strtype(right)}'
-            )
-        
-        def handle_less(left, right):
-            if type(left) == int and type(right) == int:
-                return left < right
-            raise ExecutionError(
-                f'Type mismatch: cannot compare {strtype(left)} and {strtype(right)}'
-            )
-        
-        def handle_equal(left, right):
-            if type(left) == type(right):
-                return left == right
-            raise ExecutionError(
-                f'Type mismatch: cannot compare {strtype(left)} and {strtype(right)}'
-            )
-        
-        def handle_not_equal(left, right):
-            if type(left) == type(right):
-                return left != right
-            raise ExecutionError(
-                f'Type mismatch: cannot compare {strtype(left)} and {strtype(right)}'
-            )
-        
-        def handle_greater_equal(left, right):
-            return not handle_less(left, right)
-        
-        def handle_less_equal(left, right):
-            return not handle_greater(left, right)
-        
-
-        OPERATIONS = {
-            '+': handle_sum, 
-            '-': handle_sub, 
-            '*': handle_mul, 
-            '/': handle_div, 
-            ' ': handle_blank, 
-            '>': handle_greater,
-            '<': handle_less,
-            '>=': handle_greater_equal,
-            '<=': handle_less_equal,
-            '=': handle_equal,
-            '<>': handle_not_equal
-        }
         right, left = stack.pop(), stack.pop()
         op = node.root['op']
-        stack.append(OPERATIONS[op](left, right))
+        result = binary_expression(left, op, right)
+        stack.append(result)
         return node.root['next']
 
     def handle_assignment(node):
@@ -243,35 +106,10 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
     
     def handle_unary_expr(node):
-        def handle_len(expr):
-            if type(expr) in [list, str]:
-                return len(expr)
-            raise ExecutionError(
-                f'Type mismatch: cannot get length of {strtype(expr)}'
-            )
-        
-        def handle_listNegation(expr):
-            if type(expr) == list:
-                return [-x for x in expr]
-            raise ExecutionError(
-                f'Type mismatch: cannot apply ~ to type {strtype(expr)}'
-            )
-        
-        def handle_negation(expr):
-            if type(expr) == int:
-                return -expr
-            raise ExecutionError(
-                f'Type mismatch: cannot negate type {strtype(expr)}'
-            )
-        
-        OPERATIONS = {
-            '#': handle_len, 
-            '~': handle_listNegation, 
-            '-': handle_negation
-        }
-        expr = stack.pop()
+        value = stack.pop()
         op = node.root['op']
-        stack.append(OPERATIONS[op](expr))
+        result = unary_expression(op, value)
+        stack.append(result)
         return node.root['next']
 
     def handle_array_indexing(node):

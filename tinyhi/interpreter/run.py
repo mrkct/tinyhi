@@ -210,16 +210,29 @@ def run(source, throw_errors=False):
         is returned
     Args:
         source (str): The source code of the program to run
-        throw_errors: If set to True any error will be thrown as an exception 
-        instead of printed
+        throw_errors: If set to `False` any error will be ignored instead of 
+        thrown as an exception(defaults=False)
     Throws:
         ParseError, ThreadError, ExecutionError
     """
-    ast = parse(source, throw_errors=True)
-    thread, functions = thread_ast(ast)
+    if throw_errors:
+        ast = parse(source, throw_errors=True)
+        thread, functions = thread_ast(ast)
 
-    return run_from_thread(
-        thread, 
-        functions, 
-        ast.root['name']
-    )
+        return run_from_thread(
+            thread, 
+            functions, 
+            ast.root['name']
+        )
+    else:
+        try:
+            ast = parse(source, throw_errors=True)
+            thread, functions = thread_ast(ast)
+
+            return run_from_thread(
+                thread, 
+                functions, 
+                ast.root['name']
+            )
+        except:
+            return None

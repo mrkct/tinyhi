@@ -30,21 +30,33 @@ def binary_expression(left, op, right):
         if type(left) == list and type(right) == list:
             if len(left) != len(right):
                 raise ExecutionError(
-                    f'Type mismatch: cannot sum lists with different lengths'
+                    f'Type mismatch: cannot sum ' \
+                    f'lists with different lengths'
                 )
             return [left[i] + right[i] for i in range(0, len(left))]
+        raise ExecutionError(
+            f'Type mismatch: cannot sum {strtype(left)} and {strtype(right)}'
+        )
 
     def handle_mul(left, right):
-        # Simple mul of integers
+        # Simple multiplication of integers
         if type(left) == int and type(right) == int:
             return left * right
-        # Sum of list and a single int
+        # Multiplication of list and a single int
         if type(left) == list and type(right) == int:
             left, right = right, left
         if type(left) == int and type(right) == list:
             return [left * x for x in right]
+        if type(left) == list and type(right) == list:
+            if len(left) != len(right):
+                raise ExecutionError(
+                    f'Type mismatch: cannot multiply ' \
+                    f'lists with different lengths'
+                )
+            return [left[i] * right[i] for i in range(0, len(left))]
         raise ExecutionError(
-            f'Type mismatch: cannot multiply {strtype(left)} and {strtype(right)}'
+            f'Type mismatch: cannot multiply ' \
+            f'{strtype(left)} and {strtype(right)}'
         )
 
     def handle_sub(left, right):
@@ -56,20 +68,33 @@ def binary_expression(left, op, right):
             return [x - right for x in left]
         if type(left) == int and type(right) == list:
             return [left - x for x in right]
+        if type(left) == list and type(right) == list:
+            if len(left) != len(right):
+                raise ExecutionError(
+                    f'Type mismatch: cannot subtract ' \
+                    f'lists with different lengths'
+                )
+            return [left[i] - right[i] for i in range(0, len(left))]
         raise ExecutionError(
             f'Type mismatch: cannot subtract {strtype(left)} and {strtype(right)}'
         )
 
     def handle_div(left, right):
         try:
-            # Simple divison of integers
             if type(left) == int and type(right) == int:
                 return left // right
-            # Int - List is different than List - Int
+            # Int / List is different than List / Int
             if type(left) == list and type(right) == int:
                 return [x // right for x in left]
             if type(left) == int and type(right) == list:
                 return [left // x for x in right]
+            if type(left) == list and type(right) == list:
+                if len(left) != len(right):
+                    raise ExecutionError(
+                        f'Type mismatch: cannot divide ' \
+                        f'lists with different lengths'
+                    )
+                return [left[i] // right[i] for i in range(0, len(left))]
             raise ExecutionError(
                 f'Type mismatch: cannot divide {strtype(left)} and {strtype(right)}'
             )

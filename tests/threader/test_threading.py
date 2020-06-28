@@ -1,4 +1,6 @@
+import pytest
 from tinyhi.threader import thread_ast
+from tinyhi.threader.errors import ThreadError
 from tests.parser import binop, unaryop, ASTNode 
 
 
@@ -233,3 +235,36 @@ def test_nested_functiondecl():
     x = next(thread_iter)
     assert x.root['type'] == 'return'
     assert 'next' not in x.root
+
+def test_fail_doublefunction():
+    # Should fail because there are 2 functions with the same name
+    func = ASTNode({
+        'type': 'function', 
+        'name': 'f', 
+        'params': []
+    })
+    main = ASTNode({
+        'type': 'function', 
+        'name': 'main', 
+        'params': []
+    }, [func, func])
+    with pytest.raises(ThreadError):
+        thread_ast(main)
+
+def test_fail_wrongparams():
+    func = ASTNode({
+        'type': 'function', 
+        'name': 'f', 
+        'params': ['x1', 'x2']
+    })
+    func_call = ASTNode({
+        'type': 'functionCall', 
+        'functionName': 'f'
+    }, [1, 2, 3])
+    main = ASTNode({
+        'type': 'function', 
+        'name': 'main', 
+        'params': []
+    }, [func, func_call])
+    with pytest.raises(ThreadError):
+        thread_ast(main)

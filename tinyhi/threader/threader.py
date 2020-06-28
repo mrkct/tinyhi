@@ -1,5 +1,5 @@
-from collections import defaultdict
 from tinyhi.parser import ASTNode
+from .errors import ThreadError
 
 
 def thread_ast(ast):
@@ -22,8 +22,8 @@ def thread_ast(ast):
         FUNCTIONS: A dictionary that maps each function name to the ID of the 
         node where their code starts
     Throws:
-        ValueError if 2 functions with the same name appear in the AST
-    
+        ThreadError if the syntax tree has problems that either makes the 
+        code threading process impossible or create an invalid program
     """
     NEXT_IDENTIFIER = 2
     LAST = 0
@@ -31,26 +31,8 @@ def thread_ast(ast):
         0: ASTNode({'type': 'start', 'id': 0})
     }
     FUNCTIONS = {}
-
-    def find_declared_functions(nodes):
-        """Finds the names of all functions declared in a list of nodes. 
-        This search is not recursive, if a function is declared in a branch 
-        of one of the top nodes it won't be returned. 
-
-        Args:  
-            nodes: A list of `ASTNodes` representing each a statement
-        Returns:  
-            A list of string representing the functions declared without 
-            visiting the children of those nodes
-        
-        Example:  
-            For example, given a list of 
-
-                [block f1, (if [block f2] [block f3]), block f4]
-            
-            This will return ['f1', 'f4']
-        """
-        return [n.root['name'] for n in nodes if n.root['type'] == 'function']
+    # Contains, for each declared function, how many parameters it expects
+    FUNCTIONS_PARAMS = {}
 
     def append_node(node, key='next'):
         """Appends a node to the current last node visited by setting 
@@ -81,7 +63,7 @@ def thread_ast(ast):
         if ast.root['name'] in FUNCTIONS:
             # TODO: Maybe change with a custom exception?
             message = f'Function name "{ast.root["name"]}" was already used'
-            raise ValueError(message)
+            raise ThreadError(message)
         
         # A special node that tells the interpreter to add this function to 
         # the symbol table. We need to add this before the function thread 
@@ -101,6 +83,7 @@ def thread_ast(ast):
         assign_identifier(ast)
         LAST = ast.root["id"]
         FUNCTIONS[ast.root["name"]] = ast.root["id"]
+        FUNCTIONS_PARAMS[ast.root["name"]] = len(ast.root["params"])
                 
         for stat in ast.children:
             dispatch(stat)
@@ -142,6 +125,15 @@ def thread_ast(ast):
     def function_call(ast):
         nonlocal LAST
         params = ast.children
+        
+        function_name = ast.root['functionName']
+        if len(params) != FUNCTIONS_PARAMS[function_name]:
+            expected = FUNCTIONS_PARAMS[function_name]
+            raise ThreadError(
+                f'Function "{function_name}" expected {expected} params, ' \
+                    f'{len(params)} received'
+            )
+        
         for p in params:
             dispatch(p)
         append_node(ast)

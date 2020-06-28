@@ -87,7 +87,7 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
 
     def handle_variable(node):
-        var_name = node.root['value']
+        var_name = node.root['name']
         if var_name[0] == '.':
             value = globals_table.get(var_name)
         else:

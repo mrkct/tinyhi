@@ -60,7 +60,7 @@ def test_if_noelse():
     result = parse(source, rule="stat")
     expected = ASTNode({
         "type": "if", 
-        "cond": binop(ASTNode({"type": "variable", "value": "a"}), "=", 1), 
+        "cond": binop(ASTNode({"type": "variable", "name": "a"}), "=", 1), 
         "onTrue": [printexpr(1)], 
         "onFalse": []
     })
@@ -74,7 +74,7 @@ def test_if_else():
     result = parse(source, rule="stat")
     expected = ASTNode({
         "type": "if", 
-        "cond": binop(ASTNode({"type": "variable", "value": "a"}), "<=", 2), 
+        "cond": binop(ASTNode({"type": "variable", "name": "a"}), "<=", 2), 
         "onTrue": [printexpr(1)], 
         "onFalse": [printexpr(2)]
     })
@@ -150,7 +150,7 @@ def test_arrayindexing():
     result = parse(source, rule="expr")
     assert result == ASTNode({
         "type": "arrayIndexing"
-    }, [ASTNode({"type": "variable", "value": "array"}), 
+    }, [ASTNode({"type": "variable", "name": "array"}), 
         binop(2, " ", 4)]
     )
     source = '("ba" + "gel")[0 2]'

@@ -35,7 +35,7 @@ def test_expr():
 def test_arrayindexing():
     ast = ASTNode({
         'type': 'arrayIndexing'
-    }, [ASTNode({'type': 'variable', 'value': 'arr'}), 
+    }, [ASTNode({'type': 'variable', 'name': 'arr'}), 
         binop(3, ' ', 5)]
     )
     thread, _ = thread_ast(ast)
@@ -43,7 +43,7 @@ def test_arrayindexing():
     x = next(thread_iter)
     assert x.root['type'] == 'start'
     x = next(thread_iter)
-    assert x.root['type'] == 'variable' and x.root['value'] == 'arr'
+    assert x.root['type'] == 'variable' and x.root['name'] == 'arr'
     x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 3
     x = next(thread_iter)

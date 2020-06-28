@@ -233,7 +233,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
     def visitVarExpr(self, ctx):
         return ASTNode({
             "type": "variable", 
-            "value": self.visit(ctx.identifier())
+            "name": self.visit(ctx.identifier())
         })
     
     def visitIdentifier(self, ctx):

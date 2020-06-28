@@ -2,17 +2,14 @@ from .errors import ExecutionError
 
 
 class SymbolTable:
-    """Represents the variables and functions in scope in a point of the 
-    program. """
+    """Represents the variables in scope in a point of the program."""
     def __init__(self, parent = None):
-        """
-        A symbol table starts empty but if a parent is set, if a variable or 
-        function is not found in this table, it will ask its parent before 
-        giving up
+        """A symbol table starts empty but if a parent is set, if a variable 
+        or is not found in this table, it will ask its parent before giving up
         """
         self.parent = parent
         self.variables = {}
-        self.inScopeFunctions = set()
+        self.functions = {}
     
     def get(self, variable):
         """Returns the value of a variable given its name
@@ -47,22 +44,6 @@ class SymbolTable:
             }
         else:
             self.parent.put(name, value)
-    
-    def setInScopeFunctions(self, functions):
-        """Sets what functions are in scope at the current moment
-        Params:
-            functions: An iterable of strings representing the function 
-            names of the functions in scope"""
-        self.inScopeFunctions.update(functions)
-
-    def isFunctionInScope(self, function_name):
-        """Returns whether the function is in scope. 
-        A function is in scope if it was previously added to the symbol 
-        table with `setInScopeFunctions`
-        
-        Returns:
-            `True` if the function is in scope, `False` otherwise"""
-        return function_name in self.inScopeFunctions
     
     def __repr__(self):
         keyvals = ', '.join([f'{k}: {v}' for k, v in self.variables.items()])

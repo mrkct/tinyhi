@@ -76,13 +76,9 @@ def test_ifelse():
     assert if_node.root['type'] == 'if'
     # True block
     next_true = thread[if_node.root['nextTrue']]
-    assert next_true.root['type'] == 'setInScopeFunctions'
-    next_true = thread[next_true.root['next']]
     assert next_true.root['type'] == 'number' and next_true.root['value'] == 1
     # False block
     next_false = thread[if_node.root['nextFalse']]
-    assert next_false.root['type'] == 'setInScopeFunctions'
-    next_false = thread[next_false.root['next']]
     assert next_false.root['type'] == 'number' and next_false.root['value'] == 0
     exit_scope_true = thread[next_true.root['next']]
     exit_scope_false = thread[next_false.root['next']]
@@ -116,8 +112,6 @@ def test_while():
 
     # Check the true branch 
     true_node = thread[x.root['nextTrue']]
-    assert true_node.root['type'] == 'setInScopeFunctions'
-    true_node = thread[true_node.root['next']]
     assert true_node.root['type'] == 'number' and true_node.root['value'] == 1
     true_node = thread[true_node.root['next']]
     assert true_node.root['type'] == 'exitBlockScope'
@@ -137,8 +131,6 @@ def test_until():
     assert x.root['type'] == 'start'
     block_start = next(thread_iter)
     assert block_start.root['type'] == 'enterBlockScope'
-    x = next(thread_iter)
-    assert x.root['type'] == 'setInScopeFunctions' and x.root['functions'] == []
     x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 1
     x = next(thread_iter)
@@ -200,9 +192,6 @@ def test_functiondecl():
     x = next(thread_iter)
     assert x.root['type'] == 'function' and x.root['name'] == 'main'
     x = next(thread_iter)
-    assert x.root['type'] == 'setInScopeFunctions'
-    assert x.root['functions'] == ['main']
-    x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 1
     x = next(thread_iter)
     assert x.root['type'] == 'return'
@@ -218,8 +207,7 @@ def test_nested_functiondecl():
         'type': 'function', 
         'name': 'main', 
         'params': []
-    }, [ASTNode({'type': 'number', 'value': 1}), 
-        nested_func, 
+    }, [nested_func, 
         ASTNode({'type': 'number', 'value': 1})]
     )
     thread, functions = thread_ast(ast)
@@ -229,12 +217,7 @@ def test_nested_functiondecl():
     x = next(thread_iter)
     assert x.root['type'] == 'function' and x.root['name'] == 'main'
     x = next(thread_iter)
-    assert x.root['type'] == 'setInScopeFunctions' 
-    assert 'main' in x.root['functions']
-    assert 'nested' in x.root['functions']
-    assert len(x.root['functions']) == 2
-    x = next(thread_iter)
-    assert x.root['type'] == 'number' and x.root['value'] == 1
+    assert x.root['type'] == 'functionDeclaration' and x.root['name'] == 'nested'
     x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 1
     x = next(thread_iter)
@@ -245,12 +228,6 @@ def test_nested_functiondecl():
     thread_iter = thread2iter(thread, start=functions['nested'])
     x = next(thread_iter)
     assert x.root['type'] == 'function' and x.root['name'] == 'nested'
-    x = next(thread_iter)
-    assert x.root['type'] == 'setInScopeFunctions'
-    assert 'main' in x.root['functions']
-    assert 'nested' in x.root['functions']
-    assert len(x.root['functions']) == 2
-
     x = next(thread_iter)
     assert x.root['type'] == 'number' and x.root['value'] == 0
     x = next(thread_iter)

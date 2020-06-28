@@ -283,8 +283,7 @@ def test_function_scope():
                 END
             END
             x()
-        END""",
-
+        END"""
     ]
     with pytest.raises(ExecutionError):
         for s in bad_scopes:

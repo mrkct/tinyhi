@@ -1,4 +1,5 @@
 from .symboltable import SymbolTable
+from .functiontable import FunctionTable
 from .errors import ExecutionError, strtype
 from .undefined import Undefined
 from tinyhi.parser import parse
@@ -9,14 +10,27 @@ from .expressions import binary_expression, unary_expression, array_index
 def run_from_thread(thread, functions, start):
     IP = functions[start]
     
+    # The top of the stack contains a function table that represents the 
+    # functions in scope. Since we don't run the first block declaration 
+    # node we need to add that one manually
+    functiontable_stack = []
+    first_table = FunctionTable()
+    first_table.declare(start, [])    
+    functiontable_stack.append(first_table)
+
     # The top of this stack contains the symbol table that represents the 
-    # current scope
+    # current scope of the functions
     symboltable_stack = []
     return_stack = [-1]     # Contains the return IP for each function call
     stack = []              # Contains the actual values for the computations
 
     # A special SymbolTable dedicated to globals
     globals_table = SymbolTable()
+
+    def _dbg(node):
+        print(IP, "  ", node.root['type'])
+        print(functiontable_stack)
+        print("\n\n")
 
     def handle_skip(node):
         """Handles those nodes that do nothing and are only used to join 
@@ -26,16 +40,20 @@ def run_from_thread(thread, functions, start):
     def handle_function(node):
         """Handles the node that represents when we enter a called function"""
         # In a function we don't care about the scope of who called us
-        table = SymbolTable()
+        # But we do care about the scope of functions declared before
+        symbol_table = SymbolTable()
+        functions_table = FunctionTable(parent=functiontable_stack[-1])
+        functiontable_stack.append(functions_table)
+
         # FIXME: Disallow using the function name as a param
         for param in reversed(node.root['params']):
-            table.put(param, stack.pop(), immutable=True)
+            symbol_table.put(param, stack.pop(), immutable=True)
         # We also need to put the function name, even without a value 
         # because if we were to set it first in a block scope it would 
         # end up in a SymbolTable that would be thrown away at the end 
         # of that scope
-        table.put(node.root['name'], Undefined)
-        symboltable_stack.append(table)
+        symbol_table.put(node.root['name'], Undefined)
+        symboltable_stack.append(symbol_table)
         
         return node.root['next']
 
@@ -45,17 +63,18 @@ def run_from_thread(thread, functions, start):
         # Care, we need to save the IP just after this node or we would run 
         # this node again after we return from a function
         function_name = node.root["functionName"]
-        table = symboltable_stack[-1]
-        if not table.isFunctionInScope(function_name):
+        table = functiontable_stack[-1]
+        if not table.isVisible(function_name):
             raise ExecutionError(
                 f'Function "{function_name}" is not in scope'
             )
         return_stack.append(node.root["next"])
-        return functions[node.root["functionName"]]
+        return functions[function_name]
     
     def handle_return(node):
         """Handles the end of a function call, returning to the point before 
         the call and handling the return value of the function"""
+        functiontable_stack.pop()
         # We throw away the symbol table for the function
         # but we also need to check if a return value was set. 
         st = symboltable_stack.pop()
@@ -153,17 +172,15 @@ def run_from_thread(thread, functions, start):
         symboltable_stack.pop()
         return node.root["next"]
 
-    def handle_set_in_scope_functions(node):
-        """Handles a special node which contains all the functions' names 
-        declared in a particular scope. This sets those functions as 'in scope' 
-        for the scope we're currently in"""
-        table = symboltable_stack[-1]
-        table.setInScopeFunctions(node.root['functions'])
+    def handle_function_declaration(node):
+        table = functiontable_stack[-1]
+        table.declare(node.root['name'], node.root['params'])
         return node.root['next']
 
     NODE_FUNCTIONS = {
         'skip': handle_skip, 
         'function': handle_function, 
+        'functionDeclaration': handle_function_declaration, 
         'number': handle_const, 
         'string': handle_const, 
         'variable': handle_variable, 
@@ -178,8 +195,7 @@ def run_from_thread(thread, functions, start):
         'while': handle_conditional_jump, 
         'until': handle_conditional_jump, 
         'enterBlockScope': handle_enter_block_scope, 
-        'exitBlockScope': handle_exit_block_scope, 
-        'setInScopeFunctions': handle_set_in_scope_functions
+        'exitBlockScope': handle_exit_block_scope
     }
 
     while True:
@@ -187,6 +203,7 @@ def run_from_thread(thread, functions, start):
         if IP == -1:
             return stack.pop()
         node = thread[IP]
+        # _dbg(node)
         if node.root['type'] in NODE_FUNCTIONS:
             IP = NODE_FUNCTIONS[node.root['type']](node)
         else:

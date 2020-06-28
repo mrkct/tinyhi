@@ -32,11 +32,6 @@ def thread_ast(ast):
     }
     FUNCTIONS = {}
 
-    # Here we also set for some nodes  what functions they can call from their 
-    # block. The nodes have different scopes are :
-    # functionDeclaration, if, while, until
-    scope_stack = [[]]
-
     def find_declared_functions(nodes):
         """Finds the names of all functions declared in a list of nodes. 
         This search is not recursive, if a function is declared in a branch 
@@ -87,27 +82,28 @@ def thread_ast(ast):
             # TODO: Maybe change with a custom exception?
             message = f'Function name "{ast.root["name"]}" was already used'
             raise ValueError(message)
-        # A function declaration could happen in the middle of another function
-        # We need to save the previous LAST so that it can pass through the 
-        # declaration
+        
+        # A special node that tells the interpreter to add this function to 
+        # the symbol table. We need to add this before the function thread 
+        # because we want this to execute in any case, even if the function 
+        # is never called, to set the scope right
+        append_node(ASTNode({
+            "type": "functionDeclaration", 
+            "name": ast.root["name"], 
+            "params": ast.root["params"]
+        }))
+
+        # We need to create a different, non-connected thread for this function
+        # Therefore we save the current last that will pass through this function 
+        # code
         saved_last = LAST
 
         assign_identifier(ast)
         LAST = ast.root["id"]
         FUNCTIONS[ast.root["name"]] = ast.root["id"]
-        
-        function_name = ast.root['name']
-        declared_functions = find_declared_functions(ast.children)
-        scope = list(set(scope_stack[-1] + [function_name] + declared_functions))
-        append_node(ASTNode({
-            'type': 'setInScopeFunctions', 
-            'functions': scope
-        }))
-        
-        scope_stack.append(scope)
+                
         for stat in ast.children:
             dispatch(stat)
-        scope_stack.pop()
         
         return_node = ASTNode({
             'type': 'return', 
@@ -163,18 +159,9 @@ def thread_ast(ast):
         if len(ast.root["onTrue"]) == 0:
             ast.root["nextTrue"] = exit_block_scope.root["id"]
         else:
-            declared_functions = find_declared_functions(ast.root["onTrue"])
-            scope = scope_stack[-1] + declared_functions
-            append_node(ASTNode({
-                'type': 'setInScopeFunctions', 
-                'functions': scope
-            }))
-
-            scope_stack.append(scope)
             for stat in ast.root["onTrue"]:
                 dispatch(stat)
-            scope_stack.pop()
-
+            
             ast.root["nextTrue"] = ast.root["next"]
             NODES[LAST].root["next"] = exit_block_scope.root["id"]
 
@@ -182,19 +169,8 @@ def thread_ast(ast):
             ast.root["nextFalse"] = exit_block_scope.root["id"]
         else:
             LAST = ast.root["id"]
-            
-            declared_functions = find_declared_functions(ast.root["onFalse"])
-            scope = scope_stack[-1] + declared_functions
-            append_node(ASTNode({
-                'type': 'setInScopeFunctions', 
-                'functions': scope
-            }))
-
-            scope_stack.append(scope)
             for stat in ast.root["onFalse"]:
                 dispatch(stat)
-            scope_stack.pop()
-
             ast.root["nextFalse"] = ast.root["next"]
             NODES[LAST].root["next"] = exit_block_scope.root["id"]
         
@@ -212,17 +188,9 @@ def thread_ast(ast):
         append_node(ast)
 
         # The 'cond == True' case
-        declared_functions = find_declared_functions(ast.root['onTrue'])
-        scope = scope_stack[-1] + declared_functions
-        append_node(ASTNode({
-            'type': 'setInScopeFunctions', 
-            'functions': scope
-        }))
 
-        scope_stack.append(scope)
         for stat in ast.root['onTrue']: 
             dispatch(stat)
-        scope_stack.pop()
 
         ast.root['nextTrue'] = ast.root['next']
         del ast.root['next']
@@ -249,18 +217,9 @@ def thread_ast(ast):
 
         enter_block_scope = ASTNode({'type': 'enterBlockScope'})
         append_node(enter_block_scope)
-        
-        declared_functions = find_declared_functions(ast.root['onFalse'])
-        scope = scope_stack[-1] + declared_functions
-        append_node(ASTNode({
-            'type': 'setInScopeFunctions', 
-            'functions': scope
-        }))
 
-        scope_stack.append(scope)
         for stat in ast.root['onFalse']:
             dispatch(stat)
-        scope_stack.pop()
         append_node(ASTNode({'type': 'exitBlockScope'}))
 
         dispatch(ast.root['cond'])

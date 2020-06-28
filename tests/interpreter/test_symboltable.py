@@ -24,3 +24,12 @@ def test_withparent():
     child.put('x', 'hello')
     assert child.get('x') == 'hello' and child.get('y') == 200
     assert parent.get('x') == 'hello'
+
+def test_globals():
+    a = SymbolTable()
+    b = SymbolTable()
+    a.put('.A', 1)
+    assert b.get('.A') == 1
+    b.put('.B', 0)
+    assert a.get('.B') == 0
+    assert a.get('.A') == 1

@@ -2,6 +2,7 @@ from .errors import ExecutionError
 
 
 class SymbolTable:
+    GLOBALS = {}
     """Represents the variables in scope in a point of the program."""
     def __init__(self, parent = None):
         """A symbol table starts empty but if a parent is set, if a variable 
@@ -12,12 +13,18 @@ class SymbolTable:
         self.functions = {}
     
     def get(self, variable):
-        """Returns the value of a variable given its name
+        """Returns the value of a variable given its name.
         Args:
             variable: A string with the name of the variable to find
         Returns:
             The value previously stored or None if the variable was never set
         """
+        if SymbolTable.isVariableGlobal(variable):
+            if variable in SymbolTable.GLOBALS:
+                return SymbolTable.GLOBALS[variable]['value']
+            else:
+                return None
+        
         if variable in self.variables:
             return self.variables[variable]['value']
         if self.parent:
@@ -25,7 +32,9 @@ class SymbolTable:
         return None
     
     def put(self, name, value, immutable=False):
-        """Sets the value of a variable to a certain value
+        """Sets the value of a variable to a certain value. Note that if 
+        the variable starts with a '.' then it is considered GLOBAL and will 
+        be visible in every SymbolTable declared
         Args:
             name: A string with the name of the variable to set
             value: The value to set the variable to
@@ -35,6 +44,13 @@ class SymbolTable:
             `ExecutionError`: if you try to set a different value to a variable 
             that was set to be immutable
         """
+        if SymbolTable.isVariableGlobal(name):
+            SymbolTable.GLOBALS[name] = {
+                'value': value, 
+                'immutable': immutable
+            }
+            return
+        
         if name in self.variables and self.variables[name]["immutable"]:
             raise ExecutionError(f'Variable "{name}" is immutable!"')
         if self.parent == None or self.parent.get(name) == None:
@@ -45,6 +61,11 @@ class SymbolTable:
         else:
             self.parent.put(name, value)
     
+    @staticmethod
+    def isVariableGlobal(variable):
+        """Returns whether a variable is global or not"""
+        return variable.startswith('.')
+
     def __repr__(self):
         keyvals = ', '.join([f'{k}: {v}' for k, v in self.variables.items()])
         if self.parent:

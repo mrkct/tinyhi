@@ -24,9 +24,6 @@ def run_from_thread(thread, functions, start):
     return_stack = [-1]     # Contains the return IP for each function call
     stack = []              # Contains the actual values for the computations
 
-    # A special SymbolTable dedicated to globals
-    globals_table = SymbolTable()
-
     def _dbg(node):
         print(IP, "  ", node.root['type'])
         print(functiontable_stack)
@@ -94,11 +91,8 @@ def run_from_thread(thread, functions, start):
 
     def handle_variable(node):
         var_name = node.root['name']
-        if var_name[0] == '.':
-            value = globals_table.get(var_name)
-        else:
-            symbol_table = symboltable_stack[-1]
-            value = symbol_table.get(var_name)
+        symbol_table = symboltable_stack[-1]
+        value = symbol_table.get(var_name)
         if value == None:
             raise ExecutionError(f'Name "{var_name}" is not defined')
         stack.append(value)
@@ -113,10 +107,7 @@ def run_from_thread(thread, functions, start):
 
     def handle_assignment(node):
         table = symboltable_stack[-1]
-        # If it's a global variable we use another table
         var_name = node.root['variable']
-        if var_name[0] == '.':
-            table = globals_table
         # If it is an assignment to clear the variable
         if len(node.children) == 0:
             table.put(var_name, Undefined)

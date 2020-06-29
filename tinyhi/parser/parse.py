@@ -1,19 +1,12 @@
 from antlr4.CommonTokenStream import CommonTokenStream
 from antlr4.InputStream import InputStream
-from antlr4.error.ErrorListener import ErrorListener
-
+from .ast import ASTBuilderVisitor
+from .errors import ParseErrorThrowListener
 from .TinyHiVisitor import TinyHiVisitor
 from .TinyHiLexer import TinyHiLexer
 from .TinyHiParser import TinyHiParser
-from .ast import ASTBuilderVisitor
 
-class ParseError(Exception):
-    pass
 
-class ParseErrorThrowListener(ErrorListener) :
-    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        message = f"line {line}:{column}: at {offendingSymbol}: {msg}"
-        raise ParseError(message)
 
 def parse(source, rule="program", throw_errors=False):
     """Generates the AST from a string containing the source code.

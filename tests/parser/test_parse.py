@@ -1,6 +1,6 @@
-from tinyhi.parser.ast import ASTBuilderVisitor
-from tinyhi.parser import ASTNode, parse
 from tests.parser import binop, unaryop, printexpr
+from tinyhi.parser import ASTNode, parse
+
 
 def ast_int(x):
     v = ASTNode({

@@ -1,7 +1,7 @@
 import pytest
+from tests.parser import binop, unaryop, ASTNode 
 from tinyhi.threader import thread_ast
 from tinyhi.threader.errors import ThreadError
-from tests.parser import binop, unaryop, ASTNode 
 
 
 def thread2iter(thread, start=0):

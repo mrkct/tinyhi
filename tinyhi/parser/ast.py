@@ -6,43 +6,23 @@ from antlr4.error.ErrorListener import ErrorListener
 from .TinyHiVisitor import TinyHiVisitor
 from .TinyHiLexer import TinyHiLexer
 from .TinyHiParser import TinyHiParser
+from .astnode import ASTNode
+from .errors import ParseError
 
 
-class ASTNode():
-    """Represents the generic node of the Abstract Syntax Tree. 
-
-    This node contains its value in the `root` property and an ordered 
-    list of its children in the `children` property.
+def get_context_children(ctx):
+    """Extracts all of an ANTLR Context children into a list
+    Params:
+        ctx: An ANTLR SomethingContext object
+    Returns:
+        A list of all children of the context object
     """
-    
-    def __init__(self, root, children=[]):
-        self.root = root 
-        self.children = list(children) if children else []
-    
-    def __repr__(self):
-        if not self.children:
-            return repr(self.root)
-        
-        children_repr = ', '.join([repr(child) for child in self.children])
-        return f'({self.root}, [{children_repr}])'
-    
-    def __str__(self):
-        return repr(self)
-    
-    def __eq__(self, other):
-        if type(other) != ASTNode:
-            return False
-        return self.root == other.root and self.children == other.children
-
-def _childrenToList(ctx):
-    """Extracts all of an ANTLR Context children into a list"""
-    # FIXME: Rename in something better
     return [ctx.getChild(i) for i in range(0, ctx.getChildCount())]
 
 def get_lexer_rule(token):
     """Returns the name of the lexer rule that generated the token
     Args:
-        token: A `TerminalNodeImpl`
+        token: A `TerminalNodeImpl` object, which represents a token
     Returns:
         A string with the name of the lexer rule that generated the token
     """
@@ -65,13 +45,13 @@ def remove_whitespace(children):
 # TODO: Add info (e.g. line numbers) for printing error messages
 class ASTBuilderVisitor(TinyHiVisitor):  
     def visitProgram(self, ctx):
-        blocks = remove_whitespace(_childrenToList(ctx))
+        blocks = remove_whitespace(get_context_children(ctx))
         if len(blocks) == 0: return None
         
         return self.visit(blocks[0])
     
     def visitBlock(self, ctx):
-        children = remove_whitespace(_childrenToList(ctx))
+        children = remove_whitespace(get_context_children(ctx))
         # If it has params
         if len(children) == 5:
             _, identifier, params, statements, _ = children
@@ -89,7 +69,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
     def visitFormalparams(self, ctx):
         # We return a list of string directly
         # Feels a bit overkill to have ASTNodes here too
-        children = _childrenToList(ctx)
+        children = get_context_children(ctx)
         _, *params_and_commas, _ = children
         params = params_and_commas[::2]
         return [self.visit(p) for p in params]
@@ -97,11 +77,11 @@ class ASTBuilderVisitor(TinyHiVisitor):
     def visitStatements(self, ctx):
         # A statement is a stat with a NEWLINE at the end
         # We remove the NEWLINE and return a list of statements
-        children = remove_whitespace(_childrenToList(ctx))
+        children = remove_whitespace(get_context_children(ctx))
         return [self.visit(stat) for stat in children]
     
     def visitAssignStat(self, ctx):
-        identifier, _, *expr = _childrenToList(ctx)
+        identifier, _, *expr = get_context_children(ctx)
         # An assignment can also have no right side ('A <-' is valid)
         var_name = self.visit(identifier)
         if expr:
@@ -116,7 +96,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
             })
     
     def visitIfstat(self, ctx):
-        children = remove_whitespace(_childrenToList(ctx))
+        children = remove_whitespace(get_context_children(ctx))
         _, left, bool_op, right, true_stats, *rest = children
         cond = ASTNode({
             "type": "binaryExpr", 
@@ -140,7 +120,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
             })
     
     def visitWhilestat(self, ctx):
-        children = remove_whitespace(_childrenToList(ctx))
+        children = remove_whitespace(get_context_children(ctx))
         _, left, bool_op, right, stats, _ = children
         cond = ASTNode({
             "type": "binaryExpr", 
@@ -153,7 +133,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
         })
     
     def visitUntilstat(self, ctx):
-        children = remove_whitespace(_childrenToList(ctx))
+        children = remove_whitespace(get_context_children(ctx))
         _, left, bool_op, right, stats, _ = children
         cond = ASTNode({
             "type": "binaryExpr", 
@@ -167,7 +147,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitUnaryExpr(self, ctx):
         # This is not a rule, just a helper for unary expressions
-        op, expr = remove_whitespace(_childrenToList(ctx))
+        op, expr = remove_whitespace(get_context_children(ctx))
         return ASTNode({
             "type": "unaryExpr", 
             "op": op.getText()
@@ -184,8 +164,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitConcatExpr(self, ctx):
         # This is separate because since the operator is whitespace it gets filtered
-        left, _, right = _childrenToList(ctx)
-        # FIXME: A blank space as an operator is really ugly
+        left, _, right = get_context_children(ctx)
         return ASTNode({
             "type": "binaryExpr", 
             "op": " "
@@ -193,7 +172,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitBinaryExpr(self, ctx):
         # This is not a rule, just a helper for binary expressions
-        left, op, right = remove_whitespace(_childrenToList(ctx))
+        left, op, right = remove_whitespace(get_context_children(ctx))
         return ASTNode({
             "type": "binaryExpr", 
             "op": op.getText()
@@ -206,7 +185,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
         return self.visitBinaryExpr(ctx)
 
     def visitFunctioncall(self, ctx):
-        func_identifier, actual_params = remove_whitespace(_childrenToList(ctx))
+        func_identifier, actual_params = remove_whitespace(get_context_children(ctx))
         return ASTNode({
             "type": "functionCall", 
             "functionName": func_identifier.getText()
@@ -219,11 +198,11 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitActualparams(self, ctx):
         # This is a list of expr with commas in between enclosed in parenthesis
-        _, *params_and_commas, _ = _childrenToList(ctx)
+        _, *params_and_commas, _ = get_context_children(ctx)
         return [self.visit(child) for child in params_and_commas[::2]]
     
     def visitIndexExpr(self, ctx):
-        left, _, expr, _ = _childrenToList(ctx)
+        left, _, expr, _ = get_context_children(ctx)
         return ASTNode({
             "type": "arrayIndexing"
         }, [self.visit(left), self.visit(expr)])
@@ -233,7 +212,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
         # The default implementation of ParseTreeVisitor delegates this to 
         # visitChildren, which then uses aggregateResult, which by default
         # returns the last child of all, which in our case is whitespace
-        expr = remove_whitespace(_childrenToList(ctx))[0]
+        expr = remove_whitespace(get_context_children(ctx))[0]
         return self.visit(expr)
 
     def visitAtom(self, ctx):
@@ -268,6 +247,6 @@ class ASTBuilderVisitor(TinyHiVisitor):
         })
     
     def visitParenthesizedExpr(self, ctx):
-        children = remove_whitespace(_childrenToList(ctx))
+        children = remove_whitespace(get_context_children(ctx))
         _, expr, _ = children
         return self.visit(expr)

@@ -2,6 +2,18 @@ from tinyhi.parser.ast import ASTBuilderVisitor
 from tinyhi.parser import ASTNode, parse
 from tests.parser import binop, unaryop, printexpr
 
+def ast_int(x):
+    v = ASTNode({
+        'type': 'number', 
+        'value': abs(x)
+    })
+    if x < 0:
+        v = ASTNode({
+            'type': 'unaryExpr', 
+            'op': '-'
+        }, [v])
+    return v
+
 def test_named_function_args():
     source = r"""BEGIN main(arg1, arg2, arg3)
     END"""
@@ -81,14 +93,14 @@ def test_if_else():
 
 def test_basic_expr():
     source = "1"
-    result = parse(source, rule="expr")
+    result = parse(source, rule="expression")
     assert result == ASTNode({
         "type": "number", 
         "value": 1
     })
     for operator in ['+', '-', '*', '/', ' ']:
         source = f"1 {operator} 2"
-        result = parse(source, rule="expr")
+        result = parse(source, rule="expression")
         expected = ASTNode(
             {"type": "binaryExpr", "op": operator}, 
             [ASTNode({"type": "number", "value": 1}), 
@@ -97,24 +109,22 @@ def test_basic_expr():
         assert result == expected
 
 def test_whitespace_expr():    
-    assert parse("1 -1", rule="expr") == binop(1, " ", -1)
-    assert parse("  1-   1 ", rule="expr") == binop(1, "-", 1)
-    # FIXME: The parser is broken here
-    return
-    assert parse("1-1", rule="expr") == binop(1, "-", 1)
+    assert parse("1 -1", rule="expression") == binop(1, " ", ast_int(-1))
+    assert parse("  1-   1 ", rule="expression") == binop(1, "-", 1)
+    assert parse("1-1", rule="expression") == binop(1, "-", 1)
 
 def test_complex_expr():
     source = "#~(6 -7) * (1 2 + 3 (1 + 6 / 3))"
-    result = parse(source, rule="expr")
+    result = parse(source, rule="expression")
     right_vec = binop(3, " ", binop(1, "+", binop(6, "/", 3)))
     left_vec = binop(1, " ", 2)
-    unary_part = unaryop('#', unaryop('~', binop(6, " ", -7)))
+    unary_part = unaryop('#', unaryop('~', binop(6, " ", ast_int(-7))))
     expected = binop(unary_part, "*", binop(left_vec, "+", right_vec))
     assert result == expected
 
 def test_functioncall_params():
     source = 'print("hello", 1 + 1, "world")'
-    result = parse(source, rule="expr")
+    result = parse(source, rule="expression")
     expected = ASTNode({
         "type": "functionCall", 
         "functionName": "print"
@@ -127,7 +137,7 @@ def test_functioncall_params():
 
 def test_functioncall_noparams():
     source = "  do_something()"
-    result = parse(source, rule="expr")
+    result = parse(source, rule="expression")
     assert result == ASTNode({
         "type": "functionCall", 
         "functionName": "do_something"
@@ -135,7 +145,7 @@ def test_functioncall_noparams():
 
 def test_sum_functioncall():
     source = "main(1) + 1"
-    result = parse(source, rule="expr")
+    result = parse(source, rule="expression")
     fcall = ASTNode({
         "type": "functionCall", 
         "functionName": "main"
@@ -147,14 +157,14 @@ def test_sum_functioncall():
 
 def test_arrayindexing():
     source = "array[2 4]"
-    result = parse(source, rule="expr")
+    result = parse(source, rule="expression")
     assert result == ASTNode({
         "type": "arrayIndexing"
     }, [ASTNode({"type": "variable", "name": "array"}), 
         binop(2, " ", 4)]
     )
     source = '("ba" + "gel")[0 2]'
-    result = parse(source, rule="expr")
+    result = parse(source, rule="expression")
     string_addition = ASTNode({
         "type": "binaryExpr",
         "op": "+"

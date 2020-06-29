@@ -39,6 +39,16 @@ def _childrenToList(ctx):
     # FIXME: Rename in something better
     return [ctx.getChild(i) for i in range(0, ctx.getChildCount())]
 
+def get_lexer_rule(token):
+    """Returns the name of the lexer rule that generated the token
+    Args:
+        token: A `TerminalNodeImpl`
+    Returns:
+        A string with the name of the lexer rule that generated the token
+    """
+    return TinyHiLexer.ruleNames[token.getSymbol().type - 1]
+
+
 def remove_whitespace(children):
     """Takes a list of ANTLR Context and TerminalNodeImpl and removes 
     those tokens that represent whitespace"""
@@ -163,10 +173,13 @@ class ASTBuilderVisitor(TinyHiVisitor):
             "op": op.getText()
         }, [self.visit(expr)])
 
-    def visitNegExpr(self, ctx):
+    def visitNegateVectorExpr(self, ctx):
+        return self.visitUnaryExpr(ctx)
+    
+    def visitNegatedExpr(self, ctx):
         return self.visitUnaryExpr(ctx)
 
-    def visitLenExpr(self, ctx):
+    def visitLengthExpr(self, ctx):
         return self.visitUnaryExpr(ctx)
 
     def visitConcatExpr(self, ctx):
@@ -196,17 +209,8 @@ class ASTBuilderVisitor(TinyHiVisitor):
         func_identifier, actual_params = remove_whitespace(_childrenToList(ctx))
         return ASTNode({
             "type": "functionCall", 
-            "functionName": self.visit(func_identifier)
+            "functionName": func_identifier.getText()
         }, self.visit(actual_params))
-    
-    
-    def visitCallExpr(self, ctx):
-        # This looks useless but it's actually necessary for parsing 'f(1) '
-        # The default implementation of ParseTreeVisitor delegates this to 
-        # visitChilder, which then uses aggregateResult, which by default
-        # returns the last child of all, which in our case is whitespace
-        function_call = remove_whitespace(_childrenToList(ctx))[0]
-        return self.visit(function_call)
     
     def visitPrintStat(self, ctx):
         return ASTNode({
@@ -224,16 +228,34 @@ class ASTBuilderVisitor(TinyHiVisitor):
             "type": "arrayIndexing"
         }, [self.visit(left), self.visit(expr)])
     
-    def visitNumber(self, ctx):
-        return ASTNode({
-            "type": "number", 
-            "value": int(ctx.NUMBER().getText())
-        })
+    def visitExpression(self, ctx):
+        # This looks useless but it's actually necessary
+        # The default implementation of ParseTreeVisitor delegates this to 
+        # visitChildren, which then uses aggregateResult, which by default
+        # returns the last child of all, which in our case is whitespace
+        expr = remove_whitespace(_childrenToList(ctx))[0]
+        return self.visit(expr)
+
+    def visitAtom(self, ctx):
+        node = ctx.getChild(0)
+        if type(node) == TerminalNodeImpl:
+            token_rule = get_lexer_rule(node)
+            if token_rule == 'NUMBER':
+                return ASTNode({
+                    "type": "number", 
+                    "value": int(ctx.getText())
+                })
+            elif token_rule == 'STRING':
+                return ASTNode({
+                    "type": "string", 
+                    "value": ctx.getText()[1:-1]
+                })
+        return self.visit(node)
     
-    def visitVarExpr(self, ctx):
+    def visitVariable(self, ctx):
         return ASTNode({
             "type": "variable", 
-            "name": self.visit(ctx.identifier())
+            "name": ctx.getText()
         })
     
     def visitIdentifier(self, ctx):
@@ -245,7 +267,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
             "value": ctx.STRING().getText()[1:-1]
         })
     
-    def visitParenExpr(self, ctx):
+    def visitParenthesizedExpr(self, ctx):
         children = remove_whitespace(_childrenToList(ctx))
         _, expr, _ = children
         return self.visit(expr)

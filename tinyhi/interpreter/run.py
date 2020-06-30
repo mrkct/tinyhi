@@ -42,7 +42,6 @@ def run_from_thread(thread, functions, start):
         functions_table = FunctionTable(parent=functiontable_stack[-1])
         functiontable_stack.append(functions_table)
 
-        # FIXME: Disallow using the function name as a param
         for param in reversed(node.root['params']):
             symbol_table.put(param, stack.pop(), immutable=True)
         # We also need to put the function name, even without a value 

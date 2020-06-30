@@ -61,10 +61,17 @@ class ASTBuilderVisitor(TinyHiVisitor):
             _, identifier, blocks, statements, _ = children
             params = []
         
+        function_name = self.visit(identifier)
+        if function_name in params:
+            raise ParseError(
+                f'The name of the function ({function_name}) cannot be '\
+                'the same as one of the parameters'
+            )
+
         instructions = self.visit(blocks) + self.visit(statements)
         return ASTNode({
             "type": "function", 
-            "name": self.visit(identifier), 
+            "name": function_name, 
             "params": params
         }, instructions)
     

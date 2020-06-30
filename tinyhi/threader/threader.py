@@ -61,7 +61,6 @@ def thread_ast(ast):
     def function_declaration(ast):
         nonlocal LAST
         if ast.root['name'] in FUNCTIONS:
-            # TODO: Maybe change with a custom exception?
             message = f'Function name "{ast.root["name"]}" was already used'
             raise ThreadError(message)
         

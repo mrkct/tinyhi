@@ -111,10 +111,10 @@ def test_if():
 
 def test_var_scope():
     source = r"""BEGIN main
-        a <- 0
         BEGIN func()
             a <- 1
         END
+        a <- 0
         func()
         main <- a
     END
@@ -199,10 +199,10 @@ def test_print(capsys):
 
 def test_globals():
     source = r"""BEGIN main
-        .A <- 0
         BEGIN func
             .A <- 1
         END
+        .A <- 0
         func()
         main <- .A
     END"""
@@ -213,6 +213,7 @@ def test_globals():
             .GLOBAL <- 1
             i <- 1
         END
+        i <- 0
         main <- .GLOBAL
     END"""
     assert run(source, throw_errors=True) == 1

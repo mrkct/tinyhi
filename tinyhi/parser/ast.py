@@ -53,20 +53,29 @@ class ASTBuilderVisitor(TinyHiVisitor):
     def visitBlock(self, ctx):
         children = remove_whitespace(get_context_children(ctx))
         # If it has params
-        if len(children) == 5:
-            _, identifier, params, statements, _ = children
+        if len(children) == 6:
+            _, identifier, params, blocks, statements, _ = children
             params = self.visit(params)
         else:
             # Or if it has none
-            _, identifier, statements, _ = children
+            _, identifier, blocks, statements, _ = children
             params = []
+        
+        instructions = self.visit(blocks) + self.visit(statements)
         return ASTNode({
             "type": "function", 
             "name": self.visit(identifier), 
             "params": params
-        }, self.visit(statements))
+        }, instructions)
+    
+    def visitBlocks(self, ctx):
+        """This rule contains a list of 'block', handling the possible 
+        whitespace between each other"""
+        blocks = remove_whitespace(get_context_children(ctx))
+        return [self.visit(b) for b in blocks]
     
     def visitFormalparams(self, ctx):
+        """This rule handles the parameters in a function declaration"""
         # We return a list of string directly
         # Feels a bit overkill to have ASTNodes here too
         children = get_context_children(ctx)
@@ -75,6 +84,8 @@ class ASTBuilderVisitor(TinyHiVisitor):
         return [self.visit(p) for p in params]
     
     def visitStatements(self, ctx):
+        """This rule contains a list of 'statements', handling the possible 
+        whitespace between each other"""
         # A statement is a stat with a NEWLINE at the end
         # We remove the NEWLINE and return a list of statements
         children = remove_whitespace(get_context_children(ctx))

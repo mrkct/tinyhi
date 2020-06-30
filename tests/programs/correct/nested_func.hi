@@ -1,10 +1,12 @@
 BEGIN main(argc)
     BEGIN print(what)
+        BEGIN do_something(x)
+            x + 1
+        END
+        BEGIN do_nothing(y)
+        END
         do_something(what)
     END
     print("Hello")
     print(" WORLD")
-    BEGIN useless()
-        useless <- 1
-    END
 END

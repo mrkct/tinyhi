@@ -2,7 +2,7 @@ grammar TinyHi;
 
 program: (NEWLINE|WS)* block (NEWLINE|WS)* EOF;
 
-statements: (statement NEWLINE)* ;
+statements: (statement NEWLINE (WS|NEWLINE)*)* ;
 
 statement: WS? stat WS? ;
 
@@ -10,11 +10,11 @@ stat: identifier '<-' expression?       #assignStat
     | ifstat                            #ifStat
     | whilestat                         #whileStat
     | untilstat                         #untilStat
-    | block                             #blockStat
     | expression                        #printStat
     ;
 
-block: BEGIN identifier formalparams? NEWLINE statements END; 
+blocks: (WS? block WS? NEWLINE (WS|NEWLINE)*)* ;
+block: BEGIN identifier formalparams? NEWLINE blocks statements END; 
 
 ifstat: IF expression BOOLOP expression NEWLINE statements (ELSE NEWLINE statements)? END; 
 whilestat: WHILE expression BOOLOP expression NEWLINE statements END;

@@ -195,7 +195,7 @@ def test_print(capsys):
     END"""
     run(source, throw_errors=True)
     stdout = capsys.readouterr().out
-    assert stdout == "Hello, world!\n1\n[1, 2, 3]\n"
+    assert stdout == "Hello, world!\n1\n1 2 3\n"
 
 def test_globals():
     source = r"""BEGIN main

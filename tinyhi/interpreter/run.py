@@ -145,7 +145,10 @@ def run_from_thread(thread, functions, start):
             raise ExecutionError(
                 f'PRINT: Invalid value on the stack {value} ({type(value)})'
             )
-        print(value)
+        if type(value) == list:
+            print(' '.join([str(i) for i in value]))
+        else:
+            print(value)
         return node.root["next"]
 
     def handle_enter_block_scope(node):

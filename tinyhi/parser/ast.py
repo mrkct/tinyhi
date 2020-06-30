@@ -1,13 +1,9 @@
-from antlr4.CommonTokenStream import CommonTokenStream
-from antlr4.InputStream import InputStream
-from antlr4.tree.Tree import TerminalNodeImpl
-from antlr4.error.ErrorListener import ErrorListener
-
+from .astnode import ASTNode
+from .errors import ParseError
 from .TinyHiVisitor import TinyHiVisitor
 from .TinyHiLexer import TinyHiLexer
 from .TinyHiParser import TinyHiParser
-from .astnode import ASTNode
-from .errors import ParseError
+from antlr4.tree.Tree import TerminalNodeImpl
 
 
 def get_context_children(ctx):
@@ -34,7 +30,7 @@ def remove_whitespace(children):
     those tokens that represent whitespace"""
     result = []
     for child in children:
-        if type(child) == TerminalNodeImpl:
+        if isinstance(child, TerminalNodeImpl):
             name = TinyHiLexer.ruleNames[child.getSymbol().type - 1]
             if name in ["WS", "NEWLINE"]:
                 continue
@@ -42,7 +38,6 @@ def remove_whitespace(children):
     return result
 
 
-# TODO: Add info (e.g. line numbers) for printing error messages
 class ASTBuilderVisitor(TinyHiVisitor):  
     def visitProgram(self, ctx):
         blocks = remove_whitespace(get_context_children(ctx))
@@ -235,7 +230,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitAtom(self, ctx):
         node = ctx.getChild(0)
-        if type(node) == TerminalNodeImpl:
+        if isinstance(node, TerminalNodeImpl):
             token_rule = get_lexer_rule(node)
             if token_rule == 'NUMBER':
                 return ASTNode({

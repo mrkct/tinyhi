@@ -1,0 +1,4 @@
+BEGIN main
+    IFf > 5
+    END
+END

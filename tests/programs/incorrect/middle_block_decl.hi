@@ -1,0 +1,6 @@
+BEGIN main
+    "hello"
+    BEGIN error(x)
+    END
+    "world"
+END

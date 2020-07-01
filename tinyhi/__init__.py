@@ -1,2 +1,3 @@
 from .parser import parse, ParseError
-from .interpreter import run
+from .threader import ThreadError
+from .interpreter import run, ExecutionError

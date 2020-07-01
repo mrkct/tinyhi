@@ -1,0 +1,6 @@
+BEGIN main
+    A <- 0
+    IF A + 2
+        "err"
+    END
+END

@@ -59,12 +59,12 @@ LENGTH: '#' ;
 
 BOOLOP: '='|'<'|'>'|'<='|'>=' | '<>';
 
-IF: WS? 'IF' WS? ;
+IF: WS? 'IF ' WS? ;
 ELSE: WS? 'ELSE' WS?;
 END: WS? 'END' WS? ;
-WHILE: WS? 'WHILE' WS? ;
-UNTIL: WS? 'UNTIL' WS? ;
-BEGIN: WS? 'BEGIN' WS? ;
+WHILE: WS? 'WHILE ' WS? ;
+UNTIL: WS? 'UNTIL ' WS? ;
+BEGIN: WS? 'BEGIN ' WS? ;
 
 IDENTIFIER: [a-zA-Z_.] [a-zA-Z0-9_]* ;
 NUMBER: '0' | ([1-9] [0-9]*) ;

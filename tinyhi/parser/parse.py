@@ -18,14 +18,16 @@ def parse(source, rule="program", throw_errors=False):
         An ``ASTNode`` representing the whole AST on success, ``None`` if an error occurred
     """
     lexer = TinyHiLexer(InputStream(source))
-    lexer.removeErrorListeners()
-    lexer.addErrorListener(ParseErrorThrowListener())
+    if throw_errors:
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(ParseErrorThrowListener())
 
     stream = CommonTokenStream(lexer)
     parser = TinyHiParser(stream)
     
-    parser.removeErrorListeners()
-    parser.addErrorListener(ParseErrorThrowListener())
+    if throw_errors:
+        parser.removeErrorListeners()
+        parser.addErrorListener(ParseErrorThrowListener())
 
     if not hasattr(parser, rule):
         raise ValueError(f'There is no rule "{rule}" in the grammar')

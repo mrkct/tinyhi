@@ -24,11 +24,6 @@ def run_from_thread(thread, functions, start):
     return_stack = [-1]     # Contains the return IP for each function call
     stack = []              # Contains the actual values for the computations
 
-    def _dbg(node):
-        print(IP, "  ", node.root['type'])
-        print(functiontable_stack)
-        print("\n\n")
-
     def handle_skip(node):
         """Handles those nodes that do nothing and are only used to join 
         branches in the thread"""
@@ -194,9 +189,10 @@ def run_from_thread(thread, functions, start):
     while True:
         # End the program
         if IP == -1:
-            return stack.pop()
+            return_value = stack.pop()
+            if return_stack == Undefined: return None
+            return return_value
         node = thread[IP]
-        # _dbg(node)
         if node.root['type'] in NODE_FUNCTIONS:
             IP = NODE_FUNCTIONS[node.root['type']](node)
         else:

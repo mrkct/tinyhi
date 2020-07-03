@@ -134,12 +134,13 @@ def run_from_thread(thread, functions, start):
 
     def handle_print(node):
         value = stack.pop()
-        if value == Undefined: 
+        if value == Undefined:
             return node.root["next"]
         if type(value) not in [int, str, list]:
             raise ExecutionError(
                 f'PRINT: Invalid value on the stack {value} ({type(value)})'
             )
+        
         if type(value) == list:
             print(' '.join([str(i) for i in value]))
         else:
@@ -189,9 +190,10 @@ def run_from_thread(thread, functions, start):
     while True:
         # End the program
         if IP == -1:
-            return_value = stack.pop()
-            if return_stack == Undefined: return None
-            return return_value
+            returned_value = stack.pop()
+            if returned_value == Undefined:
+                return None
+            return returned_value
         node = thread[IP]
         if node.root['type'] in NODE_FUNCTIONS:
             IP = NODE_FUNCTIONS[node.root['type']](node)

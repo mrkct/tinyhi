@@ -9,5 +9,5 @@ class ParseErrorThrowListener(ErrorListener):
     """An ANTLR ErrorListener that, on any syntax error, throws a ParseError 
     error"""
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        message = f"line {line}:{column}: at {offendingSymbol}: {msg}"
+        message = f"line {line}:{column}: {msg}"
         raise ParseError(message)

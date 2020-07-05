@@ -31,8 +31,7 @@ def remove_whitespace(children):
     result = []
     for child in children:
         if isinstance(child, TerminalNodeImpl):
-            name = TinyHiLexer.ruleNames[child.getSymbol().type - 1]
-            if name in ["WS", "NEWLINE"]:
+            if get_lexer_rule(child) in ["WS", "NEWLINE"]:
                 continue
         result.append(child)
     return result
@@ -88,12 +87,12 @@ class ASTBuilderVisitor(TinyHiVisitor):
     def visitStatements(self, ctx):
         """This rule contains a list of 'statements', handling the possible 
         whitespace between each other"""
-        # A statement is a stat with a NEWLINE at the end
-        # We remove the NEWLINE and return a list of statements
         children = remove_whitespace(get_context_children(ctx))
         return [self.visit(stat) for stat in children]
 
     def visitStatement(self, ctx):
+        """A statement is just a generic 'stat' that handles possible 
+        whitespace before or after the 'stat'"""
         # This looks useless but is actually necessary
         # If there is whitespace at the end of a statement ANTLR's default 
         # implementation returns the result of the last children of the context
@@ -250,6 +249,8 @@ class ASTBuilderVisitor(TinyHiVisitor):
                     "type": "string", 
                     "value": ctx.getText()[1:-1]
                 })
+        # Otherwise it's an identifier which we need to visit to remove 
+        # the whitespace
         return self.visit(node)
     
     def visitVariable(self, ctx):
@@ -260,12 +261,6 @@ class ASTBuilderVisitor(TinyHiVisitor):
     
     def visitIdentifier(self, ctx):
         return ctx.IDENTIFIER().getText()
-    
-    def visitString(self, ctx):
-        return ASTNode({
-            "type": "string", 
-            "value": ctx.STRING().getText()[1:-1]
-        })
     
     def visitParenthesizedExpr(self, ctx):
         children = remove_whitespace(get_context_children(ctx))

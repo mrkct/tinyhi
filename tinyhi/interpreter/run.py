@@ -8,6 +8,20 @@ from .expressions import binary_expression, unary_expression, array_index
 
 
 def run_from_thread(thread, functions, start):
+    """Runs a program using a dict of threaded nodes, a dict of functions 
+    and their respective starting points and the function name from which 
+    to start.
+
+    Args:
+        thread: A dictionary containing threaded ASTNodes
+        functions: A dictionary containing the key in the `thread` dict for 
+        each function name
+        start: A string containing the starting function from which to start 
+        executing
+    Returns: 
+        Whatever the starting function returned, or None if nothing was 
+        returned
+    """
     IP = functions[start]
     
     # The top of the stack contains a function table that represents the 
@@ -84,15 +98,19 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
 
     def handle_variable(node):
+        """Pushes the value of a referenced variable"""
         var_name = node.root['name']
         symbol_table = symboltable_stack[-1]
         value = symbol_table.get(var_name)
         if value == None:
-            raise ExecutionError(f'Name "{var_name}" is not defined')
+            raise ExecutionError(
+                f'Variable name "{var_name}" is not defined in this scope'
+            )
         stack.append(value)
         return node.root['next']
     
     def handle_binary_expr(node):
+        """Handles a generic binary expression"""
         right, left = stack.pop(), stack.pop()
         op = node.root['op']
         result = binary_expression(left, op, right)
@@ -100,6 +118,7 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
 
     def handle_assignment(node):
+        """Handles a assignment, including an empty one"""
         table = symboltable_stack[-1]
         var_name = node.root['variable']
         # If it is an assignment to clear the variable
@@ -110,6 +129,7 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
     
     def handle_unary_expr(node):
+        """Handles a generic unary expression"""
         value = stack.pop()
         op = node.root['op']
         result = unary_expression(op, value)
@@ -117,6 +137,7 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
 
     def handle_array_indexing(node):
+        """Handles an array indexing"""
         index = stack.pop()
         array = stack.pop()
         result = array_index(array, index)
@@ -124,6 +145,7 @@ def run_from_thread(thread, functions, start):
         return node.root['next']
 
     def handle_conditional_jump(node):
+        """Handles every conditional jump. These are IF, WHILE and UNTIL"""
         cond = stack.pop()
         if type(cond) != bool:
             raise ExecutionError(
@@ -133,6 +155,8 @@ def run_from_thread(thread, functions, start):
         return node.root["nextTrue"] if cond else node.root["nextFalse"]
 
     def handle_print(node):
+        """Handles the printing of a value, which is when an expression on a 
+        line is evaluated but its result is never used in anything"""
         value = stack.pop()
         if value == Undefined:
             return node.root["next"]
@@ -162,6 +186,9 @@ def run_from_thread(thread, functions, start):
         return node.root["next"]
 
     def handle_function_declaration(node):
+        """Handles a special node that signals that a function is declared in 
+        this scope. These nodes always come just after a function call so 
+        there is no problem of having a declaration come after an usage"""
         table = functiontable_stack[-1]
         table.declare(node.root['name'], node.root['params'])
         return node.root['next']
@@ -191,6 +218,7 @@ def run_from_thread(thread, functions, start):
         # End the program
         if IP == -1:
             returned_value = stack.pop()
+            # This is to avoid exposing the Undefined const outside
             if returned_value == Undefined:
                 return None
             return returned_value

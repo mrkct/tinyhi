@@ -2,10 +2,13 @@ from .undefined import Undefined
 
 
 class ExecutionError(Exception):
+    """Represents an error that occurred while executing a program. These type 
+    of errors are logical ones, such as type mismatches or divisions by zero"""
     pass
 
 def strtype(x):
-    """Returns a string representation of the type of the value
+    """Returns a string representation of the type of the value for use 
+    in error messages
     """
     if type(x) == int:
         return 'INTEGER'

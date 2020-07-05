@@ -80,7 +80,7 @@ class ASTBuilderVisitor(TinyHiVisitor):
         """This rule handles the parameters in a function declaration"""
         # We return a list of string directly
         # Feels a bit overkill to have ASTNodes here too
-        children = get_context_children(ctx)
+        children = remove_whitespace(get_context_children(ctx))
         _, *params_and_commas, _ = children
         params = params_and_commas[::2]
         return [self.visit(p) for p in params]
@@ -92,9 +92,17 @@ class ASTBuilderVisitor(TinyHiVisitor):
         # We remove the NEWLINE and return a list of statements
         children = remove_whitespace(get_context_children(ctx))
         return [self.visit(stat) for stat in children]
+
+    def visitStatement(self, ctx):
+        # This looks useless but is actually necessary
+        # If there is whitespace at the end of a statement ANTLR's default 
+        # implementation returns the result of the last children of the context
+        # (which would be whitespace in that case)
+        child = remove_whitespace(get_context_children(ctx))[0]
+        return self.visit(child)
     
     def visitAssignStat(self, ctx):
-        identifier, _, *expr = get_context_children(ctx)
+        identifier, _, *expr = remove_whitespace(get_context_children(ctx))
         # An assignment can also have no right side ('A <-' is valid)
         var_name = self.visit(identifier)
         if expr:
@@ -211,11 +219,11 @@ class ASTBuilderVisitor(TinyHiVisitor):
 
     def visitActualparams(self, ctx):
         # This is a list of expr with commas in between enclosed in parenthesis
-        _, *params_and_commas, _ = get_context_children(ctx)
+        _, *params_and_commas, _ = remove_whitespace(get_context_children(ctx))
         return [self.visit(child) for child in params_and_commas[::2]]
     
     def visitIndexExpr(self, ctx):
-        left, _, expr, _ = get_context_children(ctx)
+        left, _, expr, _ = remove_whitespace(get_context_children(ctx))
         return ASTNode({
             "type": "arrayIndexing"
         }, [self.visit(left), self.visit(expr)])

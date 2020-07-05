@@ -42,7 +42,12 @@ class ASTBuilderVisitor(TinyHiVisitor):
         blocks = remove_whitespace(get_context_children(ctx))
         if len(blocks) == 0: return None
         
-        return self.visit(blocks[0])
+        main_block = self.visit(blocks[0])
+        if main_block.root['params']:
+            raise ParseError(
+                'The outermost function cannot have parameters'
+            )
+        return main_block
     
     def visitBlock(self, ctx):
         children = remove_whitespace(get_context_children(ctx))

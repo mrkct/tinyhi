@@ -1,4 +1,4 @@
-BEGIN main(argc)
+BEGIN main()
     BEGIN print(what)
         BEGIN do_something(x)
             x + 1

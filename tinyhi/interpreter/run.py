@@ -52,6 +52,11 @@ def run_from_thread(thread, functions, start):
         functiontable_stack.append(functions_table)
 
         for param in reversed(node.root['params']):
+            if not stack:
+                # This could happen if the AST main function has params
+                raise ExecutionError(
+                    f'Stack does not have all necessary params'
+                )
             symbol_table.put(param, stack.pop(), immutable=True)
         # We also need to put the function name, even without a value 
         # because if we were to set it first in a block scope it would 

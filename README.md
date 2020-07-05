@@ -4,6 +4,7 @@
 * ANTLR + Python
 * La grammatica si trova in `tinyhi/parser/TinyHi.g4`
 * Le funzioni `parse` e `run` sono esposte anche direttamente dal modulo `tinyhi`. Basta fare `from tinyhi import parse, run`
+* Le funzioni `parse` e `run` hanno un parametro opzionale `throw_errors` (default False) che se messo a True lancia delle eccezioni in caso di errori (in particolare `ParseError`, `ThreadError` e `ExecutionError`)
 * È anche possibile eseguire un file direttamente facendo `python -m tinyhi NomeFile`
 
 ### Broadcasting

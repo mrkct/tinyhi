@@ -6,6 +6,7 @@ handouts/
 tinyhi/parser/TinyHi*
 !tinyhi/parser/TinyHi.g4
 tests/test_prof.py
+Valutazione.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

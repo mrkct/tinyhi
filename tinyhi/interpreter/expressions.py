@@ -183,6 +183,8 @@ def unary_expression(op, value):
     def handle_length(value):
         if type(value) in [list, str]:
             return len(value)
+        elif type(value) == int:
+            return 1
         raise ExecutionError(
             f'Type mismatch: cannot get length of {strtype(value)}'
         )

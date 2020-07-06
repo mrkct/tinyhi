@@ -5,6 +5,7 @@ from .undefined import Undefined
 from tinyhi.parser import parse
 from tinyhi.threader import thread_ast
 from .expressions import binary_expression, unary_expression, array_index
+import sys
 
 
 def run_from_thread(thread, functions, start):
@@ -243,8 +244,8 @@ def run(source, throw_errors=False):
         is returned
     Args:
         source (str): The source code of the program to run
-        throw_errors: If set to `False` any error will be ignored instead of 
-        thrown as an exception(defaults=False)
+        throw_errors: If set to `True` any error will be thrown as an 
+        exception instead of being printed on `stderr`
     Throws:
         ParseError, ThreadError, ExecutionError
     """
@@ -257,15 +258,14 @@ def run(source, throw_errors=False):
             functions, 
             ast.root['name']
         )
-    else:
-        try:
-            ast = parse(source, throw_errors=True)
-            thread, functions = thread_ast(ast)
-
-            return run_from_thread(
-                thread, 
-                functions, 
-                ast.root['name']
-            )
-        except:
-            return None
+    
+    try:
+        ast = parse(source, throw_errors=True)
+        thread, functions = thread_ast(ast)
+        return run_from_thread(
+            thread, 
+            functions, 
+            ast.root['name']
+        )
+    except Exception as error:
+        print(error, file=sys.stderr)

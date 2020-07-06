@@ -42,7 +42,7 @@ def test_negation():
             unary_expression('-', val)
 
 def test_length():
-    correct = [[1, 2], 'str']
+    correct = [1, [1, 2], 'str']
     for val in correct:
         unary_expression('#', val)
     incorrect = [x for x in vals if x not in correct]

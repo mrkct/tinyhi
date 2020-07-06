@@ -14,11 +14,11 @@ stat: identifier '<-' expression?       #assignStat
     ;
 
 blocks: (WS? block WS? NEWLINE (WS|NEWLINE)*)* ;
-block: BEGIN identifier formalparams? WS? NEWLINE (WS|NEWLINE)* blocks statements END; 
+block: BEGIN WS identifier formalparams? WS? NEWLINE (WS|NEWLINE)* blocks statements END; 
 
-ifstat: IF expression BOOLOP expression NEWLINE (WS|NEWLINE)* statements (ELSE NEWLINE (WS|NEWLINE)* statements)? END; 
-whilestat: WHILE expression BOOLOP expression NEWLINE (WS|NEWLINE)* statements END;
-untilstat: UNTIL expression BOOLOP expression NEWLINE (WS|NEWLINE)* statements END;
+ifstat: IF WS expression BOOLOP expression NEWLINE (WS|NEWLINE)* statements (ELSE WS? NEWLINE (WS|NEWLINE)* statements)? END; 
+whilestat: WHILE WS expression BOOLOP expression NEWLINE (WS|NEWLINE)* statements END;
+untilstat: UNTIL WS expression BOOLOP expression NEWLINE (WS|NEWLINE)* statements END;
 
 expression: WS? expr WS? ;
 
@@ -59,12 +59,12 @@ LENGTH: '#' ;
 
 BOOLOP: '='|'<'|'>'|'<='|'>=' | '<>';
 
-IF: WS? 'IF ' WS? ;
-ELSE: WS? 'ELSE' WS?;
-END: WS? 'END' WS? ;
-WHILE: WS? 'WHILE ' WS? ;
-UNTIL: WS? 'UNTIL ' WS? ;
-BEGIN: WS? 'BEGIN ' WS? ;
+IF: 'IF';
+ELSE: 'ELSE';
+END: 'END';
+WHILE: 'WHILE';
+UNTIL: 'UNTIL';
+BEGIN: 'BEGIN';
 
 IDENTIFIER: [a-zA-Z_.] [a-zA-Z0-9_]* ;
 NUMBER: '0' | ([1-9] [0-9]*) ;

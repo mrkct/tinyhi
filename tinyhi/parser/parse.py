@@ -1,11 +1,11 @@
 from antlr4.CommonTokenStream import CommonTokenStream
 from antlr4.InputStream import InputStream
 from .ast import ASTBuilderVisitor
-from .errors import ParseErrorThrowListener
+from .errors import ParseErrorThrowListener, ParseError
 from .TinyHiVisitor import TinyHiVisitor
 from .TinyHiLexer import TinyHiLexer
 from .TinyHiParser import TinyHiParser
-
+import sys
 
 
 def parse(source, rule="program", throw_errors=False):
@@ -17,19 +17,26 @@ def parse(source, rule="program", throw_errors=False):
     Returns:
         An ``ASTNode`` representing the whole AST on success, ``None`` if an error occurred
     """
-    lexer = TinyHiLexer(InputStream(source))
-    if throw_errors:
+    def _parse():
+        lexer = TinyHiLexer(InputStream(source))
         lexer.removeErrorListeners()
         lexer.addErrorListener(ParseErrorThrowListener())
 
-    stream = CommonTokenStream(lexer)
-    parser = TinyHiParser(stream)
-    
-    if throw_errors:
+        stream = CommonTokenStream(lexer)
+        parser = TinyHiParser(stream)
+
         parser.removeErrorListeners()
         parser.addErrorListener(ParseErrorThrowListener())
 
-    if not hasattr(parser, rule):
-        raise ValueError(f'There is no rule "{rule}" in the grammar')
-    parse_tree = getattr(parser, rule)()
-    return ASTBuilderVisitor().visit(parse_tree)
+        if not hasattr(parser, rule):
+            raise ValueError(f'There is no rule "{rule}" in the grammar')
+        parse_tree = getattr(parser, rule)()
+        return ASTBuilderVisitor().visit(parse_tree)
+    
+    if throw_errors:
+        return _parse()
+    
+    try:
+        return _parse()
+    except ParseError as e:
+        print(e, file=sys.stderr)

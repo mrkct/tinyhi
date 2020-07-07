@@ -73,10 +73,42 @@ PROGRAMS = {
             F <- G(X)
         END
         MAIN <- F(1)
-    END""", 1)
+    END""", 1), 
+    'varname_is_function_out_scope': (r"""BEGIN MAIN
+        BEGIN F(X)
+            BEGIN F2()
+            END
+            F <- X
+        END
+        BEGIN G()
+            BEGIN G2()
+                F2 <- 99
+            END
+            G2()
+        END
+        G()
+    END""", None)
+    # 'huge_expr': ("BEGIN MAIN\n 1" + " + 1" * 999 + "\nEND", 1000)
 }
 
 @pytest.mark.parametrize('program', PROGRAMS)
 def test_correct(program):
     source, expected = PROGRAMS[program]
     assert expected == run(source, throw_errors=True)
+
+BAD_PROGRAMS = {
+    'varname_is_function': r"""BEGIN MAIN
+        BEGIN F(X)
+            F <- X
+        END
+        F <- 2
+        F(1)
+        F
+    END"""
+}
+
+@pytest.mark.parametrize('program', BAD_PROGRAMS)
+def test_bad_programs(program):
+    source = BAD_PROGRAMS[program]
+    with pytest.raises(ExecutionError):
+        run(source, throw_errors=True)

@@ -122,8 +122,20 @@ def run_from_thread(thread, functions, start):
 
     def handle_assignment(node):
         """Handles a assignment, including an empty one"""
+        functiontable = functiontable_stack[-1]
         table = symboltable_stack[-1]
         var_name = node.root['variable']
+
+        # This is to disallow the use of a variable name of the same name 
+        # of a function. This would also block the variable that represents 
+        # the return value of the function but we already assign a value to 
+        # that when we enter the function so this doesn't trigger
+        if table.get(var_name) == None and functiontable.isVisible(var_name):
+            raise ExecutionError(
+                f'You cannot use "{var_name}" both as a variable and a '\
+                f'function in this scope'
+            )
+
         # If it is an assignment to clear the variable
         if len(node.children) == 0:
             table.put(var_name, Undefined)

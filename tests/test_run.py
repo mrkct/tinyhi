@@ -1,5 +1,5 @@
 import pytest
-from tinyhi.interpreter import run, ExecutionError
+from tinyhi import run, ExecutionError
 
 
 def test_main_return():

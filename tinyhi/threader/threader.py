@@ -1,5 +1,4 @@
 from tinyhi.parser import ASTNode
-from .errors import ThreadError
 
 
 def thread_ast(ast):
@@ -16,14 +15,14 @@ def thread_ast(ast):
     In some points a new node with type `skip` is added. These can be skipped 
     and are only useful for simplifying the execution
 
+    Args:
+        ast: An ASTNode representing the root of an entire program.
+
     Returns:
         NODES: A dictionary that allows to access quickly any node in the AST 
         using their ID
         FUNCTIONS: A dictionary that maps each function name to the ID of the 
         node where their code starts
-    Throws:
-        ThreadError if the syntax tree has problems that either makes the 
-        code threading process impossible or create an invalid program
     """
     NEXT_IDENTIFIER = 2
     LAST = 0
@@ -31,8 +30,6 @@ def thread_ast(ast):
         0: ASTNode({'type': 'start', 'id': 0})
     }
     FUNCTIONS = {}
-    # Contains, for each declared function, how many parameters it expects
-    FUNCTIONS_PARAMS = {}
 
     def append_node(node, key='next'):
         """Appends a node to the current last node visited by setting 
@@ -60,9 +57,6 @@ def thread_ast(ast):
 
     def function_declaration(ast):
         nonlocal LAST
-        if ast.root['name'] in FUNCTIONS:
-            message = f'Function name "{ast.root["name"]}" was already used'
-            raise ThreadError(message)
         
         # A special node that tells the interpreter to add this function to 
         # the symbol table. We need to add this before the function thread 
@@ -82,7 +76,6 @@ def thread_ast(ast):
         assign_identifier(ast)
         LAST = ast.root["id"]
         FUNCTIONS[ast.root["name"]] = ast.root["id"]
-        FUNCTIONS_PARAMS[ast.root["name"]] = len(ast.root["params"])
                 
         for stat in ast.children:
             dispatch(stat)
@@ -123,16 +116,8 @@ def thread_ast(ast):
 
     def function_call(ast):
         nonlocal LAST
+        
         params = ast.children
-        
-        function_name = ast.root['functionName']
-        if len(params) != FUNCTIONS_PARAMS[function_name]:
-            expected = FUNCTIONS_PARAMS[function_name]
-            raise ThreadError(
-                f'Function "{function_name}" expected {expected} params, ' \
-                    f'{len(params)} received'
-            )
-        
         for p in params:
             dispatch(p)
         append_node(ast)

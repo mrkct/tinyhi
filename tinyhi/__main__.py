@@ -19,14 +19,4 @@ if __name__ == "__main__":
     except OSError as e:
         print(f'Could not open file "{filename}" ({e})')
         exit(-1)
-    
-    try:
-        result = run(source, throw_errors=True)
-        exit(result)
-    except ParseError as e:
-        print(f'Syntax Error: {e}', file=sys.stderr)
-    except ThreadError as e:
-        print(f'Syntax Error: {e}', file=sys.stderr)
-    except ExecutionError as e:
-        print(f'Error while running: {e}', file=sys.stderr)
-    
+    exit(run(source))

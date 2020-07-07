@@ -55,10 +55,28 @@ PROGRAMS = {
             END
         END
         main <- sum(1 2 3 4 5 6 7 8 9 10, 1)
-    END""", 55)
+    END""", 55), 
+    'use_before_decl': (r"""BEGIN MAIN
+        BEGIN F(X)
+            F <- G(X)
+        END
+        BEGIN G(X)
+            G <- X
+        END
+        MAIN <- F(1)
+    END""", 1), 
+    'use_after_decl': (r"""BEGIN MAIN
+        BEGIN G(X)
+            G <- X
+        END
+        BEGIN F(X)
+            F <- G(X)
+        END
+        MAIN <- F(1)
+    END""", 1)
 }
 
-
-def test_correct():
-    for name, (source, expected) in PROGRAMS.items():
-        assert expected == run(source, throw_errors=True)
+@pytest.mark.parametrize('program', PROGRAMS)
+def test_correct(program):
+    source, expected = PROGRAMS[program]
+    assert expected == run(source, throw_errors=True)

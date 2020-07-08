@@ -88,7 +88,6 @@ PROGRAMS = {
         END
         G()
     END""", None)
-    # 'huge_expr': ("BEGIN MAIN\n 1" + " + 1" * 999 + "\nEND", 1000)
 }
 
 @pytest.mark.parametrize('program', PROGRAMS)

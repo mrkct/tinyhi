@@ -170,22 +170,37 @@ class ASTBuilderVisitor(TinyHiVisitor):
             "onFalse": self.visit(stats)
         })
 
-    def visitUnaryExpr(self, ctx):
-        # This is not a rule, just a helper for unary expressions
+
+    """
+    DO NOT EXTRACT A FUNCTION FOR THESE OPERATIONS:
+    Python does no tail call optimizations, therefore extracting a function 
+    and making so that all operations call the same function means that the 
+    call stack is doubled. 
+    Try parsing an expression with a lot of operands (try 800) and the parsing 
+    fails because we reach the recursion limit. Duplicating the code without
+    having a function call makes the stack a little lower.
+    """
+
+    def visitNegateVectorExpr(self, ctx):
+        op, expr = remove_whitespace(get_context_children(ctx))
+        return ASTNode({
+            "type": "unaryExpr", 
+            "op": op.getText()
+        }, [self.visit(expr)])
+    
+    def visitNegatedExpr(self, ctx):
         op, expr = remove_whitespace(get_context_children(ctx))
         return ASTNode({
             "type": "unaryExpr", 
             "op": op.getText()
         }, [self.visit(expr)])
 
-    def visitNegateVectorExpr(self, ctx):
-        return self.visitUnaryExpr(ctx)
-    
-    def visitNegatedExpr(self, ctx):
-        return self.visitUnaryExpr(ctx)
-
     def visitLengthExpr(self, ctx):
-        return self.visitUnaryExpr(ctx)
+        op, expr = remove_whitespace(get_context_children(ctx))
+        return ASTNode({
+            "type": "unaryExpr", 
+            "op": op.getText()
+        }, [self.visit(expr)])
 
     def visitConcatExpr(self, ctx):
         # This is separate because since the operator is whitespace it gets filtered
@@ -194,20 +209,20 @@ class ASTBuilderVisitor(TinyHiVisitor):
             "type": "binaryExpr", 
             "op": " "
         }, [self.visit(left), self.visit(right)])
-
-    def visitBinaryExpr(self, ctx):
-        # This is not a rule, just a helper for binary expressions
+    
+    def visitMulDivExpr(self, ctx):
         left, op, right = remove_whitespace(get_context_children(ctx))
         return ASTNode({
             "type": "binaryExpr", 
             "op": op.getText()
         }, [self.visit(left), self.visit(right)])
-    
-    def visitMulDivExpr(self, ctx):
-        return self.visitBinaryExpr(ctx)
 
     def visitAddSubExpr(self, ctx):
-        return self.visitBinaryExpr(ctx)
+        left, op, right = remove_whitespace(get_context_children(ctx))
+        return ASTNode({
+            "type": "binaryExpr", 
+            "op": op.getText()
+        }, [self.visit(left), self.visit(right)])
 
     def visitFunctioncall(self, ctx):
         func_identifier, actual_params = remove_whitespace(get_context_children(ctx))
